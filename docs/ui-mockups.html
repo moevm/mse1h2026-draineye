@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DrainEye — UI Макеты</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #e8f4f3;
+    color: #2c3e50;
+    line-height: 1.4;
+  }
+
+  /* ===== COLOR PALETTE ===== */
+  :root {
+    --teal:       #0d9488;
+    --teal-dark:  #0f766e;
+    --teal-light: #99f6e4;
+    --teal-bg:    #f0fdfa;
+    --mint:       #5eead4;
+    --white:      #ffffff;
+    --gray-50:    #f8fafc;
+    --gray-100:   #f1f5f9;
+    --gray-200:   #e2e8f0;
+    --gray-300:   #cbd5e1;
+    --gray-400:   #94a3b8;
+    --gray-500:   #64748b;
+    --gray-700:   #334155;
+    --gray-900:   #0f172a;
+    --red:        #ef4444;
+    --orange:     #f59e0b;
+    --green:      #22c55e;
+    --shadow:     0 2px 8px rgba(0,0,0,.08);
+    --shadow-lg:  0 4px 20px rgba(0,0,0,.12);
+  }
+
+  /* ===== PAGE HEADER ===== */
+  .page-header {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+    color: white;
+    padding: 40px 20px 30px;
+    text-align: center;
+  }
+  .page-header h1 { font-size: 28px; font-weight: 700; }
+  .page-header p  { opacity: .85; margin-top: 8px; font-size: 15px; }
+
+  /* ===== NAVIGATION ===== */
+  .nav-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 20px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-bar label {
+    cursor: pointer;
+    padding: 14px 18px; font-size: 14px; font-weight: 500;
+    color: var(--gray-500); white-space: nowrap;
+    border-bottom: 3px solid transparent; transition: all .2s;
+    touch-action: manipulation; -webkit-tap-highlight-color: rgba(0,0,0,.05);
+  }
+  .nav-bar label:hover { color: var(--teal); }
+  input[name="nav"] { display: none; }
+  #nav-auth:checked ~ .nav-bar label[for="nav-auth"],
+  #nav-admin:checked ~ .nav-bar label[for="nav-admin"],
+  #nav-inspector:checked ~ .nav-bar label[for="nav-inspector"] {
+    color: var(--teal); border-bottom-color: var(--teal);
+  }
+
+  /* ===== SECTIONS ===== */
+  .section { display: none; padding: 30px 20px 60px; max-width: 1400px; margin: 0 auto; }
+  #nav-auth:checked ~ #section-auth,
+  #nav-admin:checked ~ #section-admin,
+  #nav-inspector:checked ~ #section-inspector { display: block; }
+  .section-title {
+    font-size: 22px; font-weight: 700; color: var(--teal-dark);
+    margin-bottom: 8px;
+  }
+  .section-subtitle { color: var(--gray-500); margin-bottom: 30px; font-size: 14px; }
+
+  /* ===== SCREEN GRID ===== */
+  .screen-grid {
+    display: flex; flex-wrap: wrap; gap: 30px; justify-content: center;
+  }
+
+  /* ===== SCREEN CARD (wrapper) ===== */
+  .screen-card {
+    background: var(--white); border-radius: 16px; box-shadow: var(--shadow-lg);
+    overflow: hidden; display: flex; flex-direction: column;
+    width: min-content;
+  }
+  .screen-card .card-label {
+    background: var(--teal); color: white;
+    padding: 10px 16px; font-size: 13px; font-weight: 600;
+  }
+  .screen-card .card-label span { opacity: .7; font-weight: 400; }
+
+  /* ===== MOBILE FRAME ===== */
+  .mobile-frame {
+    width: 320px; height: 640px;
+    background: var(--teal-bg);
+    position: relative; padding: 0;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .mobile-frame .status-bar {
+    background: var(--teal-dark); color: white;
+    padding: 6px 16px; font-size: 11px;
+    display: flex; justify-content: space-between;
+  }
+  .mobile-frame .app-bar {
+    background: var(--teal); color: white;
+    padding: 12px 16px; font-size: 16px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mobile-frame .app-bar .back-arrow { cursor: pointer; font-size: 18px; }
+  .mobile-frame .content { flex: 1; padding: 16px; overflow-y: auto; }
+  .mobile-frame .bottom-nav {
+    background: var(--white); border-top: 1px solid var(--gray-200);
+    display: flex; justify-content: space-around; padding: 8px 0;
+  }
+  .mobile-frame .bottom-nav .nav-item {
+    text-align: center; font-size: 10px; color: var(--gray-400); cursor: pointer;
+  }
+  .mobile-frame .bottom-nav .nav-item.active { color: var(--teal); }
+  .mobile-frame .bottom-nav .nav-item .icon { font-size: 20px; display: block; }
+
+  /* ===== DESKTOP FRAME ===== */
+  .desktop-frame {
+    width: 780px; height: 520px;
+    background: var(--gray-50);
+    display: flex; position: relative;
+    overflow: hidden;
+  }
+  .desktop-frame .sidebar {
+    width: 200px; background: var(--teal-dark); color: white;
+    padding: 20px 0; flex-shrink: 0;
+    display: flex; flex-direction: column;
+  }
+  .desktop-frame .sidebar .logo {
+    padding: 0 20px 20px; font-size: 18px; font-weight: 700;
+    border-bottom: 1px solid rgba(255,255,255,.15); margin-bottom: 10px;
+  }
+  .desktop-frame .sidebar .logo small { display: block; font-size: 11px; opacity: .6; font-weight: 400; }
+  .desktop-frame .sidebar .menu-item {
+    padding: 11px 20px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    transition: background .2s;
+  }
+  .desktop-frame .sidebar .menu-item:hover { background: rgba(255,255,255,.1); }
+  .desktop-frame .sidebar .menu-item.active { background: rgba(255,255,255,.15); font-weight: 600; }
+  .desktop-frame .sidebar .menu-item.logout { margin-top: auto; color: #fca5a5; }
+  .desktop-frame .main-area { flex: 1; padding: 24px; overflow-y: auto; min-height: 0; }
+  .desktop-frame .main-area .page-title { font-size: 20px; font-weight: 700; margin-bottom: 18px; color: var(--gray-900);}
+
+  /* ===== AUTH FRAME ===== */
+  .auth-frame {
+    width: 320px; height: 640px;
+    background: linear-gradient(160deg, var(--teal-bg), #e0faf5);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    position: relative; overflow: hidden;
+  }
+  .auth-frame::before, .auth-frame::after {
+    content: ''; position: absolute; border-radius: 50%; opacity: .08;
+    background: var(--teal);
+  }
+  .auth-frame::before { width: 200px; height: 200px; top: -60px; right: -60px; }
+  .auth-frame::after  { width: 150px; height: 150px; bottom: -40px; left: -40px; }
+  .auth-box {
+    background: var(--white); border-radius: 16px; padding: 24px 20px;
+    box-shadow: var(--shadow-lg); width: 100%; position: relative; z-index: 1;
+  }
+  .auth-box .logo-area {
+    text-align: center; margin-bottom: 16px;
+  }
+  .auth-box .logo-area .logo-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--teal), var(--teal-dark));
+    display: inline-flex; align-items: center; justify-content: center;
+    color: white; font-size: 20px; margin-bottom: 8px;
+  }
+  .auth-box .logo-area h2 { font-size: 18px; color: var(--gray-900); }
+  .auth-box .logo-area p  { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+
+  /* ===== FORM ELEMENTS ===== */
+  .form-group { margin-bottom: 12px; }
+  .form-group label {
+    display: block; font-size: 12px; font-weight: 600; color: var(--gray-700);
+    margin-bottom: 5px;
+  }
+  .form-input {
+    width: 100%; padding: 10px 12px; border: 1.5px solid var(--gray-300);
+    border-radius: 8px; font-size: 13px; background: var(--gray-50);
+    color: var(--gray-700); transition: border-color .2s;
+  }
+  .form-input:focus { outline: none; border-color: var(--teal); }
+  .form-input::placeholder { color: var(--gray-400); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: all .2s; width: 100%;
+  }
+  .btn-primary { background: var(--teal); color: white; }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-outline { background: var(--white); color: var(--teal); border: 1.5px solid var(--teal); }
+  .btn-outline:hover { background: var(--teal-bg); }
+  .btn-google { background: var(--white); color: var(--gray-700); border: 1.5px solid var(--gray-300); }
+  .btn-google:hover { background: var(--gray-50); border-color: var(--gray-400); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; width: auto; }
+  .btn-disabled { opacity: .5; cursor: not-allowed; }
+
+  .link { color: var(--teal); font-size: 13px; cursor: pointer; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+  .divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
+  .divider span { font-size: 12px; color: var(--gray-400); }
+
+  .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: var(--red); padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; }
+  .success-msg { background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; }
+
+  /* ===== TABLE ===== */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    text-align: left; padding: 10px 8px; background: var(--teal-bg);
+    color: var(--teal-dark); font-weight: 600; border-bottom: 2px solid var(--mint);
+    white-space: nowrap;
+  }
+  .data-table td {
+    padding: 9px 8px; border-bottom: 1px solid var(--gray-200);
+  }
+  .data-table tr:hover td { background: var(--teal-bg); cursor: pointer; }
+
+  .badge {
+    display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+  }
+  .badge-green  { background: #dcfce7; color: #16a34a; }
+  .badge-red    { background: #fef2f2; color: var(--red); }
+  .badge-orange { background: #fef9c3; color: #a16207; }
+  .badge-gray   { background: var(--gray-100); color: var(--gray-500); }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px;
+    padding: 14px; margin-bottom: 16px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: end;
+  }
+  .filter-bar .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-bar .filter-group label { font-size: 11px; font-weight: 600; color: var(--gray-500); }
+  .filter-bar .filter-input {
+    padding: 6px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 12px;
+    background: var(--white); min-width: 100px;
+  }
+  .filter-bar .filter-select {
+    padding: 6px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 12px;
+    background: var(--white);
+  }
+  .filter-bar .btn { width: auto; padding: 7px 18px; }
+
+  /* ===== SEARCH BAR ===== */
+  .search-bar {
+    display: flex; gap: 8px; margin-bottom: 16px;
+  }
+  .search-bar input {
+    flex: 1; padding: 9px 14px; border: 1.5px solid var(--gray-300);
+    border-radius: 8px; font-size: 13px;
+  }
+
+  /* ===== INSPECTION CARD (mobile) ===== */
+  .inspection-item {
+    background: var(--white); border-radius: 10px; padding: 12px;
+    margin-bottom: 10px; box-shadow: var(--shadow);
+    display: flex; gap: 12px; cursor: pointer;
+  }
+  .inspection-item:hover { box-shadow: var(--shadow-lg); }
+  .inspection-item .thumb {
+    width: 64px; height: 64px; border-radius: 8px; background: var(--gray-200);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--gray-400); font-size: 24px;
+  }
+  .inspection-item .info { flex: 1; }
+  .inspection-item .info .date { font-size: 11px; color: var(--gray-400); }
+  .inspection-item .info .location { font-size: 13px; font-weight: 600; color: var(--gray-900); margin: 2px 0; }
+  .inspection-item .info .verdict { font-size: 12px; color: var(--gray-500); }
+  .inspection-item .info .verdict strong { color: var(--teal); }
+
+  /* ===== GAUGE ===== */
+  .gauge-row { display: flex; gap: 20px; margin: 16px 0; justify-content: center; }
+  .gauge {
+    width: 90px; height: 90px; border-radius: 50%;
+    border: 6px solid var(--gray-200);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; position: relative;
+  }
+  .gauge.high  { border-color: var(--green); }
+  .gauge.mid   { border-color: var(--orange); }
+  .gauge.low   { border-color: var(--red); }
+  .gauge .value { font-size: 22px; font-weight: 700; }
+  .gauge .label { font-size: 10px; color: var(--gray-500); }
+
+  /* ===== DETAIL CARD ===== */
+  .detail-card {
+    background: var(--white); border-radius: 12px; padding: 20px;
+    box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .detail-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--gray-900); }
+  .detail-row {
+    display: flex; justify-content: space-between; padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100); font-size: 13px;
+  }
+  .detail-row .label { color: var(--gray-500); }
+  .detail-row .value { font-weight: 600; color: var(--gray-900); }
+
+  /* ===== PHOTO AREA ===== */
+  .photo-area {
+    background: var(--gray-200); border-radius: 12px; height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-400); font-size: 40px; margin-bottom: 14px;
+    position: relative;
+  }
+  .photo-area .nav-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,.8); border: none; width: 30px; height: 30px;
+    border-radius: 50%; cursor: pointer; font-size: 16px; color: var(--gray-700);
+  }
+  .photo-area .nav-arrow.left  { left: 8px; }
+  .photo-area .nav-arrow.right { right: 8px; }
+
+  /* ===== CAMERA VIEW ===== */
+  .camera-view {
+    background: #1a1a2e; border-radius: 12px; height: 260px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; margin-bottom: 16px;
+  }
+  .camera-view .crosshair {
+    width: 120px; height: 120px; border: 2px dashed rgba(255,255,255,.4);
+    border-radius: 12px;
+  }
+  .camera-view .camera-hint {
+    position: absolute; bottom: 12px; color: rgba(255,255,255,.6); font-size: 11px;
+  }
+  .camera-btn-row {
+    display: flex; gap: 12px; justify-content: center; margin-bottom: 16px;
+  }
+  .camera-btn {
+    width: 64px; height: 64px; border-radius: 50%; border: 4px solid var(--teal);
+    background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: var(--teal);
+  }
+  .camera-btn.shutter { background: var(--teal); color: white; width: 72px; height: 72px; border-color: var(--teal-light); }
+
+  /* ===== WARNING BOX ===== */
+  .warning-box {
+    background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px;
+    padding: 14px; margin-bottom: 14px;
+  }
+  .warning-box .title { font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .warning-box .text  { font-size: 12px; color: #a16207; line-height: 1.5; }
+
+  .offline-box {
+    background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 10px;
+    padding: 14px; margin-bottom: 14px;
+  }
+  .offline-box .title { font-size: 14px; font-weight: 700; color: #991b1b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .offline-box .text  { font-size: 12px; color: #b91c1c; line-height: 1.5; }
+
+  /* ===== RADIO OPTIONS ===== */
+  .radio-list { margin: 10px 0; }
+  .radio-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; border: 1.5px solid var(--gray-200); border-radius: 8px;
+    margin-bottom: 8px; cursor: pointer; font-size: 13px;
+    transition: all .2s;
+  }
+  .radio-item:hover { border-color: var(--teal); background: var(--teal-bg); }
+  .radio-item.selected { border-color: var(--teal); background: var(--teal-bg); }
+  .radio-dot {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--gray-300);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  }
+  .radio-item.selected .radio-dot { border-color: var(--teal); }
+  .radio-item.selected .radio-dot::after {
+    content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--teal);
+  }
+
+  /* ===== PROFILE ===== */
+  .avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--mint));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 32px; font-weight: 700; margin: 0 auto 12px;
+    position: relative; cursor: pointer;
+  }
+  .avatar .edit-badge {
+    position: absolute; bottom: 0; right: 0; width: 24px; height: 24px;
+    background: var(--teal-dark); border: 2px solid var(--white);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+
+  /* ===== USER CARD ===== */
+  .user-card-detail {
+    background: var(--white); border-radius: 12px; padding: 24px;
+    box-shadow: var(--shadow); max-width: 400px;
+  }
+  .user-card-detail .user-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+  }
+  .user-card-detail .user-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--mint));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 22px; font-weight: 700;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-note {
+    font-size: 11px; color: var(--gray-400); text-align: center;
+    padding: 6px 12px; background: var(--white); border-radius: 20px;
+    border: 1px dashed var(--gray-300); margin-top: 8px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .desktop-frame { width: 100%; min-width: 0; flex-direction: column; height: auto; min-height: 400px; }
+    .desktop-frame .sidebar { width: 100%; padding: 10px 0; display: flex; flex-wrap: wrap; gap: 0; }
+    .desktop-frame .sidebar .logo { padding: 6px 14px; border-bottom: none; }
+    .desktop-frame .sidebar .menu-item { padding: 8px 14px; }
+    .desktop-frame .sidebar .menu-item.logout { margin-top: 0; }
+    .auth-frame { width: 100%; height: auto; min-height: 0; }
+    .screen-card { width: 100%; }
+    .screen-grid { gap: 20px; }
+    .filter-bar { flex-direction: column; }
+  }
+  @media (max-width: 500px) {
+    .nav-bar { gap: 0; }
+    .nav-bar label { padding: 12px 8px; font-size: 13px; min-height: 48px; flex: 1; text-align: center; }
+    .mobile-frame { width: 100%; height: auto; min-height: 500px; }
+    .auth-frame { width: 100%; }
+    .page-header { padding: 24px 16px 20px; }
+    .page-header h1 { font-size: 22px; }
+    .section { padding: 20px 12px 40px; }
+  }
+
+  /* ===== UC LABEL ===== */
+  .uc-ref {
+    display: inline-block; background: var(--teal-bg); color: var(--teal-dark);
+    font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="page-header">
+  <h1>DrainEye — UI Макеты</h1>
+  <p>Система инспекции дренажных систем &bull; Все экраны по Use Cases UC1–UC10</p>
+</div>
+
+<!-- ===== NAVIGATION (CSS-only, no JS needed) ===== -->
+<input type="radio" name="nav" id="nav-auth" checked>
+<input type="radio" name="nav" id="nav-admin">
+<input type="radio" name="nav" id="nav-inspector">
+<div class="nav-bar" id="navBar">
+  <label for="nav-auth">Авторизация</label>
+  <label for="nav-admin">Админ-панель</label>
+  <label for="nav-inspector">Инспектор (моб.)</label>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: AUTH SCREENS -->
+<!-- ============================================================ -->
+<div class="section" id="section-auth">
+  <div class="section-title">Авторизация</div>
+  <div class="section-subtitle">Экраны входа, регистрации и восстановления пароля — общие для обеих ролей</div>
+
+  <div class="screen-grid">
+
+    <!-- UC1: Login -->
+    <div class="screen-card">
+      <div class="card-label">UC-1 Вход <span>— Email + Google OAuth</span></div>
+      <div class="auth-frame">
+        <div class="auth-box">
+          <div class="logo-area">
+            <div class="logo-icon">&#128065;</div>
+            <h2>DrainEye</h2>
+            <p>Вход в систему</p>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-input" type="email" placeholder="user@example.com">
+          </div>
+          <div class="form-group">
+            <label>Пароль</label>
+            <input class="form-input" type="password" placeholder="Введите пароль">
+          </div>
+          <div style="text-align:right; margin-bottom:14px;">
+            <a class="link">Забыли пароль?</a>
+          </div>
+          <button class="btn btn-primary" style="margin-bottom:10px;">Войти</button>
+          <div class="divider"><span>или</span></div>
+          <button class="btn btn-google">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09a7.12 7.12 0 0 1 0-4.17V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Войти через Google
+          </button>
+          <div style="text-align:center; margin-top:16px;">
+            <span style="font-size:13px; color:var(--gray-500);">Нет аккаунта? </span>
+            <a class="link">Зарегистрироваться</a>
+          </div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Регистрация (UC-2) &nbsp;|&nbsp; &#10145; Забыли пароль (UC-3)</div>
+    </div>
+
+    <!-- UC2: Registration -->
+    <div class="screen-card">
+      <div class="card-label">UC-2 Регистрация <span>— создание аккаунта</span></div>
+      <div class="auth-frame">
+        <div class="auth-box">
+          <div class="logo-area">
+            <div class="logo-icon">&#128065;</div>
+            <h2>Регистрация</h2>
+            <p>Создайте аккаунт DrainEye</p>
+          </div>
+          <div class="form-group">
+            <label>Имя</label>
+            <input class="form-input" type="text" placeholder="Иван Петров">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-input" type="email" placeholder="user@example.com">
+          </div>
+          <div class="form-group">
+            <label>Пароль <span style="font-weight:400; color:var(--gray-400);">(мин. 8 символов)</span></label>
+            <input class="form-input" type="password" placeholder="Придумайте пароль">
+          </div>
+          <div class="form-group">
+            <label>Повтор пароля</label>
+            <input class="form-input" type="password" placeholder="Повторите пароль">
+          </div>
+          <!-- Example error state -->
+          <!-- <div class="error-msg">Пароли не совпадают</div> -->
+          <button class="btn btn-primary" style="margin-top:6px;">Создать аккаунт</button>
+          <div style="text-align:center; margin-top:14px;">
+            <span style="font-size:13px; color:var(--gray-500);">Уже есть аккаунт? </span>
+            <a class="link">Войти</a>
+          </div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; После регистрации &rarr; Главная (UC-6 / UC-7)</div>
+    </div>
+
+    <!-- UC3: Password Recovery — Step 1: Request link -->
+    <div class="screen-card">
+      <div class="card-label">UC-3 Восстановление пароля <span>— запрос ссылки</span></div>
+      <div class="auth-frame">
+        <div class="auth-box">
+          <div class="logo-area">
+            <div class="logo-icon">&#128274;</div>
+            <h2>Восстановление пароля</h2>
+            <p>Введите email для получения ссылки</p>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-input" type="email" placeholder="user@example.com">
+          </div>
+          <div class="success-msg">Письмо отправлено. Проверьте почту и папку «Спам»</div>
+          <button class="btn btn-primary" style="margin-bottom:10px;">Отправить ссылку</button>
+          <button class="btn btn-outline">&#8592; Назад ко входу</button>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Письмо со ссылкой &rarr; Новый пароль</div>
+    </div>
+
+    <!-- UC3: Password Recovery — Step 2: New password -->
+    <div class="screen-card">
+      <div class="card-label">UC-3 Новый пароль <span>— по ссылке из email</span></div>
+      <div class="auth-frame">
+        <div class="auth-box">
+          <div class="logo-area">
+            <div class="logo-icon">&#128274;</div>
+            <h2>Новый пароль</h2>
+            <p>Придумайте новый пароль</p>
+          </div>
+          <div class="form-group">
+            <label>Новый пароль <span style="font-weight:400; color:var(--gray-400);">(мин. 8 символов)</span></label>
+            <input class="form-input" type="password" placeholder="Введите новый пароль">
+          </div>
+          <div class="form-group">
+            <label>Повтор пароля</label>
+            <input class="form-input" type="password" placeholder="Повторите пароль">
+          </div>
+          <button class="btn btn-primary">Сохранить пароль</button>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; После сохранения &rarr; Вход (UC-1)</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: ADMIN PANEL -->
+<!-- ============================================================ -->
+<div class="section" id="section-admin">
+  <div class="section-title">Административная панель</div>
+  <div class="section-subtitle">Веб-интерфейс для администратора (только десктоп/планшет, открывается через браузер) — инспекции, пользователи, профиль</div>
+
+  <div class="screen-grid">
+
+    <!-- UC6: Dashboard - Inspections -->
+    <div class="screen-card">
+      <div class="card-label">UC-6 Главная — Инспекции <span>— таблица + фильтры</span></div>
+      <div class="desktop-frame">
+        <div class="sidebar">
+          <div class="logo">DrainEye <small>Админ-панель</small></div>
+          <div class="menu-item active">&#128203; Инспекции</div>
+          <div class="menu-item">&#128101; Пользователи</div>
+          <div class="menu-item">&#128100; Профиль</div>
+          <div class="menu-item logout" style="margin-top:auto;">&#10145; Выйти</div>
+        </div>
+        <div class="main-area">
+          <div class="page-title">Инспекции</div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <label>Период от</label>
+              <input type="date" class="filter-input" value="2026-01-01">
+            </div>
+            <div class="filter-group">
+              <label>Период до</label>
+              <input type="date" class="filter-input" value="2026-02-23">
+            </div>
+            <div class="filter-group">
+              <label>Инспектор</label>
+              <select class="filter-select"><option>Все</option><option>Иванов А.</option><option>Петрова М.</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Материал</label>
+              <select class="filter-select"><option>Любой</option><option>Бетон</option><option>Пластик</option><option>Металл</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Состояние</label>
+              <select class="filter-select"><option>1 – 5</option><option>1 – 2</option><option>3</option><option>4 – 5</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Уверенность</label>
+              <select class="filter-select"><option>Любая</option><option>Высокая</option><option>Средняя</option><option>Низкая</option></select>
+            </div>
+            <div class="filter-group">
+              <label>Скорр. вручную</label>
+              <select class="filter-select"><option>Любое</option><option>Да</option><option>Нет</option></select>
+            </div>
+            <button class="btn btn-primary btn-sm">Применить</button>
+          </div>
+
+          <div style="font-size:12px; color:var(--gray-500); margin-bottom:8px;">Найдено: <strong>47</strong> инспекций</div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Инспектор</th><th>Дата</th><th>Материал</th><th>Состояние</th><th>Уверенность</th><th>Скорр.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>#1042</td><td>Иванов А.</td><td>23.02.2026</td><td>Бетон</td><td><span class="badge badge-green">4</span></td><td>92%</td><td>Нет</td></tr>
+              <tr><td>#1041</td><td>Петрова М.</td><td>22.02.2026</td><td>Пластик</td><td><span class="badge badge-orange">3</span></td><td>67%</td><td>Да</td></tr>
+              <tr><td>#1040</td><td>Иванов А.</td><td>21.02.2026</td><td>Металл</td><td><span class="badge badge-red">1</span></td><td>45%</td><td>Да</td></tr>
+              <tr><td>#1039</td><td>Сидоров К.</td><td>20.02.2026</td><td>Бетон</td><td><span class="badge badge-green">5</span></td><td>98%</td><td>Нет</td></tr>
+              <tr><td>#1038</td><td>Петрова М.</td><td>19.02.2026</td><td>Бетон</td><td><span class="badge badge-green">4</span></td><td>88%</td><td>Нет</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Клик по строке &rarr; Детали инспекции &nbsp;|&nbsp; Боковое меню &rarr; UC-5, UC-4</div>
+    </div>
+
+    <!-- UC6: Inspection Detail -->
+    <div class="screen-card">
+      <div class="card-label">UC-6 Детали инспекции <span>— фото, метаданные, вердикт</span></div>
+      <div class="desktop-frame">
+        <div class="sidebar">
+          <div class="logo">DrainEye <small>Админ-панель</small></div>
+          <div class="menu-item active">&#128203; Инспекции</div>
+          <div class="menu-item">&#128101; Пользователи</div>
+          <div class="menu-item">&#128100; Профиль</div>
+          <div class="menu-item logout" style="margin-top:auto;">&#10145; Выйти</div>
+        </div>
+        <div class="main-area">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+            <button class="btn btn-outline btn-sm" style="width:auto;">&#8592; Назад</button>
+            <div class="page-title" style="margin-bottom:0;">Инспекция #1042</div>
+          </div>
+
+          <div style="display:flex; gap:20px; background:var(--white); border-radius:10px; padding:20px; box-shadow:0 1px 4px rgba(0,0,0,.06);">
+            <div style="width:120px; height:120px; background:var(--gray-200); border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--gray-400); font-size:32px; position:relative;">
+              &#128247;
+              <div style="position:absolute; bottom:4px; font-size:10px; color:var(--gray-500);">1 / 3</div>
+            </div>
+            <div style="flex:1;">
+              <div class="detail-row"><span class="label">Инспектор</span><span class="value">Иванов А.</span></div>
+              <div class="detail-row"><span class="label">Дата</span><span class="value">23.02.2026, 14:32</span></div>
+              <div class="detail-row"><span class="label">Местоположение</span><span class="value">55.755° N, 37.617° E</span></div>
+              <div class="detail-row"><span class="label">Материал</span><span class="value">Бетон</span></div>
+              <div class="detail-row"><span class="label">Состояние</span><span class="value"><span class="badge badge-green">4 / 5</span></span></div>
+              <div class="detail-row"><span class="label">Уверенность модели</span><span class="value">92%</span></div>
+              <div class="detail-row"><span class="label">Скорректировано</span><span class="value">Нет</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Назад &rarr; Таблица инспекций &nbsp;|&nbsp; Клик на фото &rarr; оригинал</div>
+    </div>
+
+    <!-- UC5: Users List -->
+    <div class="screen-card">
+      <div class="card-label">UC-5 Пользователи <span>— таблица + поиск</span></div>
+      <div class="desktop-frame">
+        <div class="sidebar">
+          <div class="logo">DrainEye <small>Админ-панель</small></div>
+          <div class="menu-item">&#128203; Инспекции</div>
+          <div class="menu-item active">&#128101; Пользователи</div>
+          <div class="menu-item">&#128100; Профиль</div>
+          <div class="menu-item logout" style="margin-top:auto;">&#10145; Выйти</div>
+        </div>
+        <div class="main-area">
+          <div class="page-title">Пользователи</div>
+          <div class="search-bar">
+            <input type="text" placeholder="Поиск по имени или email..." class="form-input">
+            <button class="btn btn-primary btn-sm">Найти</button>
+          </div>
+          <table class="data-table" style="font-size:11px;">
+            <thead>
+              <tr>
+                <th>ID</th><th>Имя</th><th>Email</th><th>Рег-ция</th><th>Инсп.</th><th>Активность</th><th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>#201</td><td>Иванов А.</td><td>ivanov@mail.com</td><td>15.01.26</td><td>124</td><td>23.02.26</td><td><span class="badge badge-green">Активен</span></td></tr>
+              <tr><td>#202</td><td>Петрова М.</td><td>petrova@mail.com</td><td>20.01.26</td><td>87</td><td>22.02.26</td><td><span class="badge badge-green">Активен</span></td></tr>
+              <tr><td>#203</td><td>Сидоров К.</td><td>sidorov@mail.com</td><td>01.02.26</td><td>34</td><td>20.02.26</td><td><span class="badge badge-green">Активен</span></td></tr>
+              <tr><td>#204</td><td>Козлов В.</td><td>kozlov@mail.com</td><td>05.12.25</td><td>0</td><td>06.12.25</td><td><span class="badge badge-red">Заблок.</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Клик по строке &rarr; Карточка пользователя &nbsp;|&nbsp; Поиск фильтрует таблицу</div>
+    </div>
+
+    <!-- UC5: User Card -->
+    <div class="screen-card">
+      <div class="card-label">UC-5 Карточка пользователя <span>— данные + действия</span></div>
+      <div class="desktop-frame">
+        <div class="sidebar">
+          <div class="logo">DrainEye <small>Админ-панель</small></div>
+          <div class="menu-item">&#128203; Инспекции</div>
+          <div class="menu-item active">&#128101; Пользователи</div>
+          <div class="menu-item">&#128100; Профиль</div>
+          <div class="menu-item logout" style="margin-top:auto;">&#10145; Выйти</div>
+        </div>
+        <div class="main-area">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+            <button class="btn btn-outline btn-sm" style="width:auto;">&#8592; Назад</button>
+            <div class="page-title" style="margin-bottom:0;">Пользователь #201</div>
+          </div>
+
+          <div class="user-card-detail">
+            <div class="user-header">
+              <div class="user-avatar">ИА</div>
+              <div>
+                <div style="font-size:16px; font-weight:700;">Иванов Алексей</div>
+                <div style="font-size:13px; color:var(--gray-500);">ivanov@mail.com</div>
+                <div style="margin-top:4px;"><span class="badge badge-green">Активен</span></div>
+              </div>
+            </div>
+            <div class="detail-row"><span class="label">Дата регистрации</span><span class="value">15.01.2026</span></div>
+            <div class="detail-row"><span class="label">Роль</span><span class="value">Инспектор</span></div>
+            <div class="detail-row"><span class="label">Всего инспекций</span><span class="value">124</span></div>
+            <div class="detail-row"><span class="label">Последняя активность</span><span class="value">23.02.2026</span></div>
+
+            <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-sm">Посмотреть инспекции</button>
+              <button class="btn btn-danger btn-sm">Заблокировать</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Посмотреть инспекции &rarr; UC-6 с фильтром &nbsp;|&nbsp; Заблокировать &rarr; подтверждение</div>
+    </div>
+
+    <!-- UC4: Profile -->
+    <div class="screen-card">
+      <div class="card-label">UC-4 Профиль <span>— редактирование данных</span></div>
+      <div class="desktop-frame">
+        <div class="sidebar">
+          <div class="logo">DrainEye <small>Админ-панель</small></div>
+          <div class="menu-item">&#128203; Инспекции</div>
+          <div class="menu-item">&#128101; Пользователи</div>
+          <div class="menu-item active">&#128100; Профиль</div>
+          <div class="menu-item logout" style="margin-top:auto;">&#10145; Выйти</div>
+        </div>
+        <div class="main-area">
+          <div class="page-title" style="margin-bottom:12px;">Профиль</div>
+          <div style="display:flex; gap:20px; max-width:500px;">
+            <div style="text-align:center; flex-shrink:0;">
+              <div class="avatar" style="width:64px; height:64px; font-size:24px; margin-bottom:6px;">
+                АИ
+                <div class="edit-badge">&#9998;</div>
+              </div>
+              <div style="font-size:10px; color:var(--gray-400);">Сменить фото</div>
+              <div style="margin-top:10px; font-size:11px; color:var(--gray-500); background:var(--gray-100); padding:4px 8px; border-radius:6px;">Администратор</div>
+            </div>
+            <div style="flex:1;">
+              <div class="form-group" style="margin-bottom:10px;">
+                <label>Имя</label>
+                <input class="form-input" type="text" value="Админ Иванов" style="padding:8px 10px;">
+              </div>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label>Email</label>
+                <input class="form-input" type="email" value="admin@draineye.com" style="padding:8px 10px;">
+              </div>
+              <div class="form-group" style="margin-bottom:10px;">
+                <label>Новый пароль</label>
+                <input class="form-input" type="password" placeholder="Оставьте пустым, если не меняете" style="padding:8px 10px;">
+              </div>
+              <button class="btn btn-primary" style="margin-top:4px; padding:8px 16px;">Сохранить изменения</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Сохранить &rarr; «Профиль обновлён» &nbsp;|&nbsp; Выйти &rarr; UC-1</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: INSPECTOR MOBILE APP -->
+<!-- ============================================================ -->
+<div class="section" id="section-inspector">
+  <div class="section-title">Мобильное приложение инспектора</div>
+  <div class="section-subtitle">Мобильный интерфейс — история инспекций, камера, результаты модели, офлайн-режим</div>
+
+  <div class="screen-grid">
+
+    <!-- UC7: Inspector Home - History -->
+    <div class="screen-card">
+      <div class="card-label">UC-7 Главная — История <span>— список инспекций</span></div>
+      <div class="mobile-frame">
+        <div class="status-bar"><span>9:41</span><span>&#128267; 85%</span></div>
+        <div class="app-bar">&#128065; DrainEye</div>
+        <div class="content">
+          <div style="font-size:14px; font-weight:600; margin-bottom:12px;">Мои инспекции</div>
+
+          <div class="inspection-item">
+            <div class="thumb">&#128247;</div>
+            <div class="info">
+              <div class="date">23.02.2026, 14:32</div>
+              <div class="location">ул. Ленина, 15 — колодец #3</div>
+              <div class="verdict">Бетон &bull; Состояние: <strong>4/5</strong> &bull; 92%</div>
+            </div>
+          </div>
+
+          <div class="inspection-item">
+            <div class="thumb">&#128247;</div>
+            <div class="info">
+              <div class="date">22.02.2026, 10:15</div>
+              <div class="location">пр. Мира, 8 — труба D500</div>
+              <div class="verdict">Пластик &bull; Состояние: <strong>3/5</strong> &bull; 67%</div>
+            </div>
+          </div>
+
+          <div class="inspection-item">
+            <div class="thumb">&#128247;</div>
+            <div class="info">
+              <div class="date">21.02.2026, 16:48</div>
+              <div class="location">ул. Садовая, 22 — коллектор</div>
+              <div class="verdict">Металл &bull; Состояние: <strong>1/5</strong> &bull; 45%</div>
+            </div>
+          </div>
+
+          <div class="inspection-item">
+            <div class="thumb">&#128247;</div>
+            <div class="info">
+              <div class="date">20.02.2026, 09:03</div>
+              <div class="location">ул. Пушкина, 4 — дренаж</div>
+              <div class="verdict">Бетон &bull; Состояние: <strong>5/5</strong> &bull; 98%</div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><span class="icon">&#128203;</span>История</div>
+          <div class="nav-item"><span class="icon">&#128247;</span>Съёмка</div>
+          <div class="nav-item"><span class="icon">&#128100;</span>Профиль</div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Клик по инспекции &rarr; Просмотр &nbsp;|&nbsp; Съёмка &rarr; UC-8</div>
+    </div>
+
+    <!-- UC7: Inspection Detail (mobile) -->
+    <div class="screen-card">
+      <div class="card-label">UC-7 Просмотр инспекции <span>— фото, вердикт</span></div>
+      <div class="mobile-frame">
+        <div class="status-bar"><span>9:41</span><span>&#128267; 85%</span></div>
+        <div class="app-bar"><span class="back-arrow">&#8592;</span> Инспекция #1042</div>
+        <div class="content">
+          <div class="photo-area">
+            &#128247;
+            <button class="nav-arrow left">&#8249;</button>
+            <button class="nav-arrow right">&#8250;</button>
+          </div>
+          <div style="text-align:center; font-size:11px; color:var(--gray-400); margin-bottom:14px;">Фото 1 из 3</div>
+
+          <div class="detail-card">
+            <h3>Информация</h3>
+            <div class="detail-row"><span class="label">Дата</span><span class="value">23.02.2026, 14:32</span></div>
+            <div class="detail-row"><span class="label">Место</span><span class="value">ул. Ленина, 15</span></div>
+          </div>
+          <div class="detail-card">
+            <h3>Вердикт модели</h3>
+            <div class="detail-row"><span class="label">Материал</span><span class="value">Бетон</span></div>
+            <div class="detail-row"><span class="label">Состояние</span><span class="value"><span class="badge badge-green">4 / 5</span></span></div>
+            <div class="detail-row"><span class="label">Уверенность</span><span class="value">92%</span></div>
+          </div>
+
+          <div class="gauge-row">
+            <div class="gauge high"><span class="value">4</span><span class="label">Состояние</span></div>
+            <div class="gauge high"><span class="value">92%</span><span class="label">Уверенность</span></div>
+          </div>
+
+          <button class="btn btn-outline" style="margin-top:8px;">Закрыть</button>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Закрыть &rarr; История (UC-7) &nbsp;|&nbsp; Листание фото стрелками</div>
+    </div>
+
+    <!-- UC8: Camera -->
+    <div class="screen-card">
+      <div class="card-label">UC-8 Съёмка <span>— фото или галерея</span></div>
+      <div class="mobile-frame">
+        <div class="status-bar"><span>9:41</span><span>&#128267; 85%</span></div>
+        <div class="app-bar"><span class="back-arrow">&#8592;</span> Новая инспекция</div>
+        <div class="content">
+          <div class="camera-view">
+            <div class="crosshair"></div>
+            <div class="camera-hint">Наведите на дренажную систему</div>
+          </div>
+          <div class="camera-btn-row">
+            <div class="camera-btn">&#128444;</div>
+            <div class="camera-btn shutter">&#128247;</div>
+            <div class="camera-btn" style="font-size:18px;">&#8634;</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-primary" style="flex:1;">&#128247; Сделать фото</button>
+            <button class="btn btn-outline" style="flex:1;">&#128444; Из галереи</button>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><span class="icon">&#128203;</span>История</div>
+          <div class="nav-item active"><span class="icon">&#128247;</span>Съёмка</div>
+          <div class="nav-item"><span class="icon">&#128100;</span>Профиль</div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; Фото/Галерея &rarr; Результат модели (UC-8) &nbsp;|&nbsp; Свайп влево &rarr; История</div>
+    </div>
+
+    <!-- UC8: Model Result (good) -->
+    <div class="screen-card">
+      <div class="card-label">UC-8 Результат модели <span>— высокая уверенность</span></div>
+      <div class="mobile-frame">
+        <div class="status-bar"><span>9:41</span><span>&#128267; 85%</span></div>
+        <div class="app-bar"><span class="back-arrow">&#8592;</span> Результат</div>
+        <div class="content">
+          <div class="photo-area" style="height:140px;">&#128247;</div>
+
+          <div class="detail-card" style="border-left: 4px solid var(--green);">
+            <h3 style="color:var(--green);">Результат анализа</h3>
+            <div class="detail-row"><span class="label">Материал</span><span class="value">Бетон</span></div>
+            <div class="detail-row"><span class="label">Состояние</span><span class="value"><span class="badge badge-green">4 / 5</span></span></div>
+            <div class="detail-row"><span class="label">Уверенность модели</span><span class="value" style="color:var(--green);">92%</span></div>
+          </div>
+
+          <div class="gauge-row">
+            <div class="gauge high"><span class="value">4</span><span class="label">Состояние</span></div>
+            <div class="gauge high"><span class="value">92%</span><span class="label">Уверенность</span></div>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top:16px;">OK — Сохранить</button>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; OK &rarr; Главная (UC-7) &nbsp;|&nbsp; Низкая уверенность &rarr; UC-9</div>
+    </div>
+
+    <!-- UC9: Low confidence -->
+    <div class="screen-card">
+      <div class="card-label">UC-9 Низкая уверенность <span>— предупреждение + варианты</span></div>
+      <div class="mobile-frame">
+        <div class="status-bar"><span>9:41</span><span>&#128267; 85%</span></div>
+        <div class="app-bar"><span class="back-arrow">&#8592;</span> Результат</div>
+        <div class="content">
+          <div class="photo-area" style="height:100px; font-size:28px;">&#128247;</div>
+
+          <div class="detail-card" style="border-left: 4px solid var(--orange); padding:14px;">
+            <h3 style="color:var(--orange); font-size:14px; margin-bottom:8px;">Результат анализа</h3>
+            <div class="detail-row"><span class="label">Материал</span><span class="value">Металл</span></div>
+            <div class="detail-row"><span class="label">Состояние</span><span class="value"><span class="badge badge-orange">2 / 5</span></span></div>
+            <div class="detail-row"><span class="label">Уверенность</span><span class="value" style="color:var(--orange);">38%</span></div>
+          </div>
+
+          <div class="warning-box" style="padding:10px;">
+            <div class="title" style="font-size:13px;">! Низкая уверенность</div>
+            <div class="text">Выберите действие:</div>
+          </div>
+
+          <div class="radio-list" style="margin:6px 0;">
+            <div class="radio-item selected" style="padding:8px 10px; margin-bottom:6px;">
+              <div class="radio-dot"></div>
+              Переснять фото
+            </div>
+            <div class="radio-item" style="padding:8px 10px; margin-bottom:6px;">
+              <div class="radio-dot"></div>
+              Уточнить материал
+            </div>
+            <div class="radio-item" style="padding:8px 10px; margin-bottom:0;">
+              <div class="radio-dot"></div>
+              Проверить вручную
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-primary" style="flex:1;">OK</button>
+            <button class="btn btn-outline" style="flex:1;">Отмена</button>
+          </div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; OK &rarr; повторный анализ &nbsp;|&nbsp; Отмена &rarr; Съёмка (UC-8)</div>
+    </div>
+
+    <!-- UC10: Offline Sync -->
+    <div class="screen-card">
+      <div class="card-label">UC-10 Офлайн-синхронизация <span>— нет соединения</span></div>
+      <div class="mobile-frame">
+        <div class="status-bar"><span>9:41</span><span style="color:#fca5a5;">Нет сети</span></div>
+        <div class="app-bar" style="background: var(--gray-500);">DrainEye <span style="font-size:11px; opacity:.7; font-weight:400; margin-left:auto;">Офлайн</span></div>
+        <div class="content">
+
+          <div class="offline-box" style="padding:10px;">
+            <div class="title" style="font-size:13px;">Нет Интернет-соединения</div>
+            <div class="text">
+              Результат будет сохранён в кэш и автоматически
+              выгружен при появлении соединения.
+            </div>
+          </div>
+
+          <div class="detail-card" style="border-left: 4px solid var(--gray-400); padding:14px;">
+            <h3 style="font-size:14px; margin-bottom:8px;">Ожидает отправки</h3>
+            <div class="detail-row"><span class="label">Материал</span><span class="value">Бетон</span></div>
+            <div class="detail-row"><span class="label">Состояние</span><span class="value"><span class="badge badge-gray">3 / 5</span></span></div>
+            <div class="detail-row"><span class="label">Уверенность</span><span class="value">75%</span></div>
+            <div class="detail-row"><span class="label">Статус</span><span class="value"><span class="badge badge-orange">В кэше</span></span></div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-primary" style="flex:1;">OK — В кэш</button>
+            <button class="btn btn-outline" style="flex:1;">Отмена</button>
+          </div>
+
+          <div style="margin-top:16px; padding:12px; background: var(--gray-100); border-radius:10px; text-align:center;">
+            <div style="font-size:11px; color:var(--gray-500); margin-bottom:4px;">Ожидают синхронизации</div>
+            <div style="font-size:24px; font-weight:700; color:var(--orange);">3</div>
+            <div style="font-size:10px; color:var(--gray-400);">инспекции</div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><span class="icon">&#128203;</span>История</div>
+          <div class="nav-item"><span class="icon">&#128247;</span>Съёмка</div>
+          <div class="nav-item"><span class="icon">&#128100;</span>Профиль</div>
+        </div>
+      </div>
+      <div class="flow-note">&#10145; OK &rarr; сохранение в кэш &nbsp;|&nbsp; При соединении &rarr; автовыгрузка в БД</div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
