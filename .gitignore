@@ -1,0 +1,14 @@
+# Python кэш
+__pycache__/
+*.py[cod]
+
+# Виртуальное окружение
+env/
+venv/
+.env
+.venv
+
+# Логи
+*.log
+
+key.json
