@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:drain_eye/domain/entities/inspection.dart';
 import 'package:drain_eye/presentation/widgets/inspection_card.dart';
 
-// экран с историей инспекций пользователя
+// экран с историей инспекций пользователя — по макету UC-7
 class HistoryScreen extends StatelessWidget {
-  final List<Inspection> inspections;           // отображаемые инспекции
-  final Function(Inspection) onInspectionTap;   // обработчик нажатия
+  final List<Inspection> inspections;
+  final Function(Inspection) onInspectionTap;
 
   const HistoryScreen({
     super.key,
@@ -13,40 +13,38 @@ class HistoryScreen extends StatelessWidget {
     required this.onInspectionTap,
   });
 
-  // создает экран с историей инспекций
   @override
   Widget build(BuildContext context) {
     return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // заголовок 
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Мои инспекции',
-                style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: const Color.fromARGB(195, 0, 0, 0)
-                    ),
-              ),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // заголовок
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Text(
+            'Мои инспекции',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Color(0xFF0F172A),
             ),
-            // инспекции
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                itemCount: inspections.length,
-                itemBuilder: (context, index) {
-                  final insp = inspections[index];
-                  return InspectionCard(
-                    inspection: insp,
-                    // при нажатии на инспекцию вызывается функция для смены экрана
-                    onTap: () => onInspectionTap(insp)   
-                  );
-                },
-              ),
-            ),
-          ],
-        );
+          ),
+        ),
+        // список инспекций
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 8),
+            itemCount: inspections.length,
+            itemBuilder: (context, index) {
+              final insp = inspections[index];
+              return InspectionCard(
+                inspection: insp,
+                onTap: () => onInspectionTap(insp),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
