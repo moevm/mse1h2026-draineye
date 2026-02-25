@@ -6,7 +6,7 @@
 
 ---
 
-## Датасеты
+## Датасеты Kaggle
 
 ### Трещины
 
@@ -38,6 +38,31 @@
 
 Дополнительно: [Sewer Defects](https://universe.roboflow.com/sewage-defect-detection-s68df/sewer-defects-u8zwz) — дефекты канализационных труб.
 
+
+## Датасет HuggingFace
+
+### Дефекты труб
+
+| Ключ | Датасет | Чем поможет |
+|---|---|---|
+| `pipeline_defects` | [Sewer pipe defects](https://huggingface.co/datasets/MMKata/Sewer_pipe_defects) | Дефекты канализационных труб (структурные трещины) |
+
+## Датасеты Roboflow
+
+### Трещины
+
+| Ключ | Датасет | Чем поможет |
+|---|---|---|
+| `cracks_1` | [Crack dataset Computer Vision Dataset](https://universe.roboflow.com/objectdetection-qxiqx/detr_crack_dataset) | Дефекты строительных конструкций (трещины и другие повреждения стен/поверхностей) |
+| `cracks_2` | [Crack and corrosion](https://universe.roboflow.com/sayali-hkjtm/crcak) | Дефекты строительных материалов (трещины и коррозия) |
+
+### Дефекты труб
+
+| Ключ | Датасет | Чем поможет |
+|---|---|---|
+| `pipeline_defects` | [Pipe Defects Computer Vision Dataset](https://universe.roboflow.com/computervision-naujm/pipe-defects-howis) | Дефекты канализационных труб (структурные трещины) |
+
+
 ---
 
 ## Зависимости
@@ -55,9 +80,10 @@ kaggle>=1.6.0
 ```
 KAGGLE_USERNAME=your_username
 KAGGLE_KEY=your_key
+ROBOFLOW_API_KEY=your_roboflow_api_key
 ```
 
-Токен можно получить на [kaggle.com](https://www.kaggle.com).
+Токен можно получить на [kaggle.com](https://www.kaggle.com), [roboflow.com](https://app.roboflow.com)
 
 Запустить скачивание:
 
