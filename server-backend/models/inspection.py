@@ -8,15 +8,18 @@ from app.imports import datetime, List, Optional
 class ModelVerdict:
     material: str
     state: int
-    accuracy: float
+    damage_type: str
+    damage_degree: float
+    accuracy_model: float
     comments: str
-
     """преобразует объект ModelVerdict в словарь"""
     def to_dict(self):
         return {
             "material": self.material,
             "state": self.state,
-            "accuracy": self.accuracy,
+            "accuracy_model": self.accuracy_model,
+            "damage_degree": self.damage_degree,
+            "damage_type": self.damage_type,
             "comments": self.comments
         }
 
@@ -26,7 +29,9 @@ class ModelVerdict:
         return cls(
             material = data["material"],
             state = data["state"],
-            accuracy = data["accuracy"],
+            damage_type = data["damage_type"],
+            damage_degree = data["damage_degree"],
+            accuracy_model = data["accuracy_model"],
             comments= data["comments"]
         )
 
