@@ -8,13 +8,21 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Smole тесты запуска приложения', () {
+  group('Smoke тесты запуска приложения', () {
     testWidgets('Приложение запускается без ошибок', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
 
       expect(find.byType(app.MyApp), findsOneWidget);
       expect(find.byType(MaterialApp), findsOneWidget);
+    });
+
+    testWidgets('Страница входа отображается', (WidgetTester tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+
+      final page = LoginPage(tester);
+      await page.expectHeadersVisible();
     });
   });
 }
