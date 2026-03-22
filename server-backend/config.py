@@ -10,6 +10,10 @@ class SettingsForServer:
     PROJECT_GOOGLE_ID: str = os.getenv("PROJECT_GOOGLE_ID")
     SERVER_PORT: int = int(os.getenv("SERVER_PORT", 8000))
     SERVER_HOST: str = os.getenv("SERVER_HOST", "0.0.0.0")
+    CLOUDINARY_CLOUD_NAME: str = os.getenv("CLOUDINARY_CLOUD_NAME")
+    CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY")
+    CLOUDINARY_API_SECRET: str = os.getenv("CLOUDINARY_API_SECRET")
+    CLOUDINARY_BASE_FOLDER: str = os.getenv("CLOUDINARY_BASE_FOLDER", "")
     '''формирует полный путь к файлу с credentials Firebase'''
     @property
     def FIREBASE_CREDENTIALS_PATH(self):
