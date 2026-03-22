@@ -1,3 +1,6 @@
+import 'dart:io' show File;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 const _teal = Color(0xFF0D9488);
@@ -8,13 +11,17 @@ const _orange = Color(0xFFF59E0B);
 
 /// Экран результата модели (UC-8) — высокая уверенность.
 /// Показывает результат AI-анализа после съёмки.
+/// [photoPath] — локальный путь к JPEG после съёмки; для заглушек (например «Из галереи») может быть null.
 class ModelResultScreen extends StatelessWidget {
+  /// Путь к файлу снимка на устройстве (для передачи в модель / сохранение в БД).
+  final String? photoPath;
   final String material;
   final int condition;
   final int confidencePercent;
 
   const ModelResultScreen({
     super.key,
+    this.photoPath,
     this.material = 'Бетон',
     this.condition = 4,
     this.confidencePercent = 92,
@@ -39,15 +46,7 @@ class ModelResultScreen extends StatelessWidget {
         child: Column(
           children: [
             // фото
-            Container(
-              width: double.infinity,
-              height: 160,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.camera_alt, color: _gray400, size: 40),
-            ),
+            _buildPhotoPreview(),
             const SizedBox(height: 16),
 
             // карточка результата
@@ -106,6 +105,37 @@ class ModelResultScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPhotoPreview() {
+    final path = photoPath;
+    if (path != null && path.isNotEmpty && !kIsWeb) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          width: double.infinity,
+          height: 160,
+          child: Image.file(
+            File(path),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _photoPlaceholder(),
+          ),
+        ),
+      );
+    }
+    return _photoPlaceholder();
+  }
+
+  Widget _photoPlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 160,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Icon(Icons.camera_alt, color: _gray400, size: 40),
     );
   }
 

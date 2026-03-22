@@ -3,7 +3,6 @@ import 'package:drain_eye/domain/repositories/inspection_repository.dart';
 import 'package:drain_eye/domain/usecases/get_user_inspections.dart';
 import 'package:drain_eye/presentation/blocs/user_inspection/user_inspection_bloc.dart';
 import 'package:drain_eye/presentation/screens/auth/login_screen.dart';
-import 'package:drain_eye/presentation/screens/user/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,12 +26,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: BlocProvider.value(
-        value: bloc,
-        child: const LoginScreen(),
+    return BlocProvider.value(
+      value: bloc,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const LoginScreen(),
       ),
     );
   }
 }
+
