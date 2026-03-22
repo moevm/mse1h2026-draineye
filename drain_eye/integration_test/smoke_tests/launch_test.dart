@@ -8,7 +8,7 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Smoke тесты запуска приложения', () {
+  group('Smoke тесты запуска приложения:', () {
     testWidgets('Приложение запускается без ошибок', (WidgetTester tester) async {
       app.main();
       await tester.pumpAndSettle();
