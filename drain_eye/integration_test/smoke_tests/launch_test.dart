@@ -24,5 +24,15 @@ void main() {
       final page = LoginPage(tester);
       await page.expectHeadersVisible();
     });
+
+    testWidgets('Страница входа содержит все элементы', (
+      WidgetTester tester,
+    ) async {
+      app.main();
+      await tester.pumpAndSettle();
+
+      final page = LoginPage(tester);
+      await page.expectAllElementsVisible();
+    });
   });
 }
