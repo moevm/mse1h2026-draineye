@@ -2,7 +2,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from app.config import settings
-from app.imports import List, Dict, os, datetime
+from app.imports import List, os
 
 class CloudinaryService:
     _instance = None
@@ -26,23 +26,21 @@ class CloudinaryService:
             secure=True
         )
 
-    def upload_photo(self, file_path: str, public_id: str):
+    def upload_photo(self, file_path: str, folder: str, public_id: str):
         cloudinary.uploader.upload(
             file_path,
             public_id=public_id,
-            folder="inspections",
+            folder=folder,
             resource_type="image",
             overwrite=False
         )
 
-    def upload_photos(self, file_paths: List[str], engineer_id: str) -> List[Dict]:
+    def upload_photos(self, file_paths: List[str], engineer_id: str, inspection_id: str) -> List[str]:
         uploaded = []
         for file_path in file_paths:
             filename = os.path.basename(file_path)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            public_id = f"eng_{engineer_id}/{timestamp}_{filename}"
-            self.upload_photo(file_path, public_id)
+            folder = f"inspections/eng_{engineer_id}/insp_{inspection_id}"
+            public_id = f"{folder}/{filename}"
+            self.upload_photo(file_path, folder, public_id)
             uploaded.append(public_id)
         return uploaded
-
-
