@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../utils/constants.dart';
 import 'base_page.dart';
 
-/// PageObject для страницы восстановления пароля (forgot_password_screen)
+/// PageObject для страницы восстановления пароля (ForgotPasswordScreen)
 class ForgotPasswordPage extends BasePage {
   ForgotPasswordPage(WidgetTester tester) : super(tester);
 
