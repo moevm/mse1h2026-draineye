@@ -27,6 +27,9 @@ class _CameraScreenState extends State<CameraScreen> {
   bool _permanentlyDenied = false;
   String? _error;
 
+  /// Пути к снимкам текущей сессии (несколько кадров одной инспекции).
+  final List<String> _sessionPhotoPaths = [];
+
   @override
   void initState() {
     super.initState();
@@ -124,10 +127,12 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final xfile = await c.takePicture();
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ModelResultScreen(photoPath: xfile.path),
+      setState(() => _sessionPhotoPaths.add(xfile.path));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Снято снимков: ${_sessionPhotoPaths.length}'),
+          duration: const Duration(seconds: 2),
         ),
       );
     } catch (e) {
@@ -138,6 +143,22 @@ class _CameraScreenState extends State<CameraScreen> {
       }
     } finally {
       if (mounted) setState(() => _isCapturing = false);
+    }
+  }
+
+  Future<void> _goToResult() async {
+    if (_sessionPhotoPaths.isEmpty) return;
+    final saved = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ModelResultScreen(
+          photoPaths: List<String>.from(_sessionPhotoPaths),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (saved == true) {
+      setState(() => _sessionPhotoPaths.clear());
     }
   }
 
@@ -154,7 +175,31 @@ class _CameraScreenState extends State<CameraScreen> {
       child: Column(
         children: [
           Expanded(child: _buildViewport()),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          if (_sessionPhotoPaths.isNotEmpty) ...[
+            Text(
+              'Снято снимков: ${_sessionPhotoPaths.length}',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _gray500),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: FilledButton(
+                onPressed: _goToResult,
+                style: FilledButton.styleFrom(
+                  backgroundColor: _teal,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: Text(
+                  'Далее к результату (${_sessionPhotoPaths.length})',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

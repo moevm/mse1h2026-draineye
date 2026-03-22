@@ -11,9 +11,12 @@ const _orange = Color(0xFFF59E0B);
 
 /// Экран результата модели (UC-8) — высокая уверенность.
 /// Показывает результат AI-анализа после съёмки.
-/// [photoPath] — локальный путь к JPEG после съёмки; для заглушек (например «Из галереи») может быть null.
+/// [photoPaths] — локальные пути к JPEG (несколько кадров одной инспекции).
+/// Если список пуст и задан [photoPath], используется одно фото (обратная совместимость).
 class ModelResultScreen extends StatelessWidget {
-  /// Путь к файлу снимка на устройстве (для передачи в модель / сохранение в БД).
+  /// Несколько снимков сессии (приоритет над [photoPath]).
+  final List<String>? photoPaths;
+  /// Один снимок; используется, если [photoPaths] null или пуст.
   final String? photoPath;
   final String material;
   final int condition;
@@ -21,11 +24,19 @@ class ModelResultScreen extends StatelessWidget {
 
   const ModelResultScreen({
     super.key,
+    this.photoPaths,
     this.photoPath,
     this.material = 'Бетон',
     this.condition = 4,
     this.confidencePercent = 92,
   });
+
+  List<String> get _effectivePaths {
+    final fromList = photoPaths;
+    if (fromList != null && fromList.isNotEmpty) return fromList;
+    if (photoPath != null && photoPath!.isNotEmpty) return [photoPath!];
+    return const [];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +56,7 @@ class ModelResultScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // фото
-            _buildPhotoPreview(),
+            _ResultPhotoCarousel(paths: _effectivePaths),
             const SizedBox(height: 16),
 
             // карточка результата
@@ -96,8 +106,7 @@ class ModelResultScreen extends StatelessWidget {
                   elevation: 0,
                 ),
                 onPressed: () {
-                  // возврат на главный экран (история)
-                  Navigator.popUntil(context, (route) => route.isFirst);
+                  Navigator.pop(context, true);
                 },
                 child: const Text('OK — Сохранить', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
               ),
@@ -105,37 +114,6 @@ class ModelResultScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPhotoPreview() {
-    final path = photoPath;
-    if (path != null && path.isNotEmpty && !kIsWeb) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: SizedBox(
-          width: double.infinity,
-          height: 160,
-          child: Image.file(
-            File(path),
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _photoPlaceholder(),
-          ),
-        ),
-      );
-    }
-    return _photoPlaceholder();
-  }
-
-  Widget _photoPlaceholder() {
-    return Container(
-      width: double.infinity,
-      height: 160,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: const Icon(Icons.camera_alt, color: _gray400, size: 40),
     );
   }
 
@@ -178,4 +156,111 @@ class ModelResultScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Карусель превью снимков инспекции (свайп + подпись «Фото N из M»).
+class _ResultPhotoCarousel extends StatefulWidget {
+  final List<String> paths;
+
+  const _ResultPhotoCarousel({required this.paths});
+
+  @override
+  State<_ResultPhotoCarousel> createState() => _ResultPhotoCarouselState();
+}
+
+class _ResultPhotoCarouselState extends State<_ResultPhotoCarousel> {
+  late final PageController _pageController;
+  int _page = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final paths = widget.paths;
+    if (paths.isEmpty || kIsWeb) {
+      return _resultPhotoPlaceholder();
+    }
+    if (paths.length == 1) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          width: double.infinity,
+          height: 160,
+          child: Image.file(
+            File(paths.first),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _resultPhotoPlaceholder(),
+          ),
+        ),
+      );
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 160,
+          width: double.infinity,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (i) => setState(() => _page = i),
+              itemCount: paths.length,
+              itemBuilder: (context, i) {
+                return Image.file(
+                  File(paths[i]),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: 160,
+                  errorBuilder: (_, __, ___) => _resultPhotoPlaceholder(),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Фото ${_page + 1} из ${paths.length}',
+          style: const TextStyle(fontSize: 12, color: _gray400),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(paths.length, (i) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: i == _page ? _teal : _gray400.withOpacity(0.35),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+Widget _resultPhotoPlaceholder() {
+  return Container(
+    width: double.infinity,
+    height: 160,
+    decoration: BoxDecoration(
+      color: const Color(0xFFF1F5F9),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: const Icon(Icons.camera_alt, color: _gray400, size: 40),
+  );
 }
