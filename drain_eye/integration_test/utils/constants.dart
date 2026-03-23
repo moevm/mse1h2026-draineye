@@ -34,6 +34,12 @@ class TestConstants {
   static const String alreadyHaveAccountText = 'Уже есть аккаунт?';
   static const String loginLinkText = 'Войти';
 
+  // Страница истории
+  static const String historyPageTitle = 'История';
+  static const String emptyHistoryMessage = 'История пуста';
+  static const String inspectionItemText = 'Инспекция';
+  static const String backButtonText = 'Назад';
+
   // Время ожидания
   static const Duration defaultWaitDuration = Duration(seconds: 5);
   static const Duration shortWaitDuration = Duration(seconds: 2);
