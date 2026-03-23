@@ -7,6 +7,9 @@ import 'package:drain_eye/presentation/screens/user/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// цвета из макета
+const _teal = Color(0xFF0D9488);
+
 // главный экран приложения пользователя
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,27 +18,22 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;   // 0 – история, 1 – камера, 2 – профиль
-  final int _userId = 1;    // пока нет авторизации
+  int _selectedIndex = 0;
+  final int _userId = 1;
 
-  // вызывает BLoC для загрузки инспекций
-  // выполняется только один раз при создании виджета 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       BlocProvider.of<UserInspectionBloc>(context).add(LoadUserInspections(_userId));
     });
   }
 
-  // возвращает заголовок в шапке в зависимости от страницы, 
-  // на которой находится пользователь
   String _getAppBarTitle() {
     switch (_selectedIndex) {
       case 0:
-        return '𓁺 DrainEye';
+        return 'DrainEye';
       case 1:
         return 'Новая инспекция';
       case 2:
@@ -45,15 +43,12 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  // обрабатывает нажатие на пункт нижней навигации
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  // обрабатывает нажатие на конкретную карточку инспекции 
-  // вызывает экран с информацией об инспекции
   void _onInspectionTap(Inspection inspection) {
     Navigator.push(
       context,
@@ -63,59 +58,71 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  // создает главный экран
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 213, 225, 224),
-      // верхняя панель
+      backgroundColor: const Color(0xFFF0FDFA),
       appBar: AppBar(
-        title: Text(_getAppBarTitle()),   
+        title: Row(
+          children: [
+            if (_selectedIndex == 0) ...[
+              const Icon(Icons.visibility, size: 22),
+              const SizedBox(width: 8),
+            ],
+            Text(_getAppBarTitle()),
+          ],
+        ),
         titleTextStyle: const TextStyle(
           fontWeight: FontWeight.bold,
-          fontSize: 23,
+          fontSize: 20,
+          color: Colors.white,
         ),
-        toolbarHeight: 70,
-        backgroundColor: const Color.fromARGB(255, 2, 155, 124),
+        toolbarHeight: 56,
+        backgroundColor: _teal,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
-      // содержимое зависит от выбранной вкладки
       body: _buildBody(),
-      // нижняя панель 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'История',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt),
-            label: 'Съёмка',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Профиль',
-          ),
-        ],
-        selectedItemColor: const Color.fromARGB(255, 2, 155, 124),
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
-        elevation: 8,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment),
+              label: 'История',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.camera_alt),
+              label: 'Съёмка',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Профиль',
+            ),
+          ],
+          selectedItemColor: _teal,
+          unselectedItemColor: const Color(0xFF94A3B8),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+        ),
       ),
     );
   }
 
-  // построение основы экрана в зависимости от выбранной вкладки 
   Widget _buildBody() {
     switch (_selectedIndex) {
-      // вкладка с историей инспекций
-      case 0: 
+      case 0:
         return BlocBuilder<UserInspectionBloc, UserInspectionState>(
           builder: (context, state) {
             if (state is UserInspectionLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: _teal));
             } else if (state is UserInspectionLoaded) {
               return HistoryScreen(
                 inspections: state.inspections,
@@ -127,12 +134,10 @@ class _MainScreenState extends State<MainScreen> {
             return const SizedBox.shrink();
           },
         );
-      // вкладка с камерой для новой инспекции
-      case 1: 
-        return CameraScreen();
-      // вкладка с профилем
+      case 1:
+        return const CameraScreen();
       case 2:
-        return ProfileScreen();
+        return const ProfileScreen();
       default:
         return const SizedBox.shrink();
     }

@@ -2,6 +2,7 @@ from app.imports import firebase_admin
 from app.imports import credentials, firestore
 from app.repositories import UsersCollection, InspectionsCollection
 from app.config import settings
+from app.models import Inspection
 
 '''
 cинглтон-сервис для управления подключением к Firebase и доступа к коллекциям
@@ -47,5 +48,10 @@ class FirebaseService:
             self._collections['inspections'] = InspectionsCollection(self._db)
         return self._collections['inspections']
 
+    '''метод для выдачи инспекций по инженеру из хранилища'''
     def get_inspections_by_engineer(self, engineer_id: str, limit: int = None):
         return self.inspections_collection.get_inspections_by_eng_id(engineer_id, limit)
+
+    '''метод для добавления инспеции'''
+    def add_inspection(self, inspection: Inspection) -> str:
+        return self.inspections_collection.add_inspection(inspection)
