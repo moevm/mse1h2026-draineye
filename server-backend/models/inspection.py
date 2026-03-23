@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from app.imports import datetime, List, Optional
+from app.schemas import InspectionSchema, ModelVerdictSchema
 
 '''
 класс для хранения вердикта, вынесенного ML моделью
@@ -8,15 +9,18 @@ from app.imports import datetime, List, Optional
 class ModelVerdict:
     material: str
     state: int
-    accuracy: float
+    damage_type: str
+    damage_degree: float
+    accuracy_model: float
     comments: str
-
     """преобразует объект ModelVerdict в словарь"""
     def to_dict(self):
         return {
             "material": self.material,
             "state": self.state,
-            "accuracy": self.accuracy,
+            "accuracy_model": self.accuracy_model,
+            "damage_degree": self.damage_degree,
+            "damage_type": self.damage_type,
             "comments": self.comments
         }
 
@@ -26,8 +30,22 @@ class ModelVerdict:
         return cls(
             material = data["material"],
             state = data["state"],
-            accuracy = data["accuracy"],
+            damage_type = data["damage_type"],
+            damage_degree = data["damage_degree"],
+            accuracy_model = data["accuracy_model"],
             comments= data["comments"]
+        )
+
+    '''преобразование из схемы'''
+    @classmethod
+    def from_schema(cls, schema):
+        return cls(
+            material=schema.material,
+            state=schema.state,
+            damage_type=schema.damage_type,
+            damage_degree=schema.damage_degree,
+            accuracy_model=schema.accuracy_model,
+            comments=schema.comments
         )
 
 '''
@@ -69,4 +87,17 @@ class Inspection:
             name = data['name'],
             photos=data['photos'].copy(),
             status_sync=data['status_sync']
+        )
+
+    '''преобразование из схемы'''
+    @classmethod
+    def from_schema(cls, schema: InspectionSchema, photos: List[str] = None):
+        return cls(
+            engineer_id=schema.engineer_id,
+            timestamp=schema.timestamp,
+            model_verdict=ModelVerdict.from_schema(schema.model_verdict),
+            address=schema.address,
+            name=schema.name,
+            photos=photos or schema.photos,
+            status_sync=schema.status_sync
         )
