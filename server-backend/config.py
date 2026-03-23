@@ -8,7 +8,7 @@ load_dotenv(dotenv_path=env_path)
 class SettingsForServer:
     FIREBASE_CREDENTIALS: str = os.getenv("FIREBASE_CREDENTIALS")
     PROJECT_GOOGLE_ID: str = os.getenv("PROJECT_GOOGLE_ID")
-    SERVER_PORT: int = int(os.getenv("SERVER_PORT", 8000))
+    SERVER_PORT: int = int(os.getenv("SERVER_PORT", 8080))
     SERVER_HOST: str = os.getenv("SERVER_HOST", "0.0.0.0")
     CLOUDINARY_CLOUD_NAME: str = os.getenv("CLOUDINARY_CLOUD_NAME")
     CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY")

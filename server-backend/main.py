@@ -1,11 +1,12 @@
 from app.imports import uvicorn
 from app.config import settings
-from tests.test_beta import test1
+from app.services import StorageService
+
 '''
 запуск сервера и всей программы
 '''
 if __name__ == "__main__":
-    test1()
+    service = StorageService()
     print("Запуск сервера...")
     uvicorn.run(
         "app.server.server:server_app",

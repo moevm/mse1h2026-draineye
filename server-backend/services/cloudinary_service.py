@@ -2,8 +2,13 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from app.config import settings
-from app.imports import List, os
+from app.imports import List, os, io
+from app.imports import UploadFile
 
+'''
+cинглтон-сервис для управления подключением к Cloudinary и доступа к облаку
+Обеспечивает единую точку входа для всех операций с Cloudinary во всем приложении
+'''
 class CloudinaryService:
     _instance = None
     def __new__(cls):
@@ -26,21 +31,41 @@ class CloudinaryService:
             secure=True
         )
 
-    def upload_photo(self, file_path: str, folder: str, public_id: str):
-        cloudinary.uploader.upload(
-            file_path,
-            public_id=public_id,
-            folder=folder,
-            resource_type="image",
-            overwrite=False
-        )
+    '''генерирует public id для доступа к фотке с сервера'''
+    def generate_public_id(self, engineer_id: str, inspection_id: str, filename: str) -> str:
+        folder = f"inspections/eng_{engineer_id}/insp_{inspection_id}"
+        public_id = f"{folder}/{filename}"
+        return public_id
 
-    def upload_photos(self, file_paths: List[str], engineer_id: str, inspection_id: str) -> List[str]:
-        uploaded = []
-        for file_path in file_paths:
-            filename = os.path.basename(file_path)
-            folder = f"inspections/eng_{engineer_id}/insp_{inspection_id}"
-            public_id = f"{folder}/{filename}"
-            self.upload_photo(file_path, folder, public_id)
-            uploaded.append(public_id)
-        return uploaded
+    '''генерирует public id для всех фотографий из инспекции'''
+    def generate_public_ids(self, filenames: List[str], engineer_id: str, inspection_id: str) -> List[str]:
+        public_ids = []
+        for filename in filenames:
+            public_id = self.generate_public_id(engineer_id, inspection_id, filename)
+            public_ids.append(public_id)
+        return public_ids
+
+    '''загрузка фоток на облако'''
+    async def upload_photos(self, files: List[UploadFile], public_ids: List[str]):
+        for file, public_id in zip(files, public_ids):
+            if file and file.filename:
+                await self.upload_photo(file, public_id)
+
+    '''загрузка фото на облако'''
+    async def upload_photo(self, file: UploadFile, public_id: str):
+        try:
+            content = await file.read()
+            file_stream = io.BytesIO(content)
+            folder = "/".join(public_id.split("/")[:-1])
+            filename = public_id.split("/")[-1]
+            cloudinary.uploader.upload(
+                file_stream,
+                public_id=filename,
+                folder=folder,
+                resource_type="image",
+                overwrite=False
+            )
+            await file.seek(0)
+        except Exception as e:
+            print(f"Ошибка загрузки {public_id}: {e}")
+            raise
