@@ -11,20 +11,17 @@ class InspectionsCollection(BaseCollection):
     def __init__(self, db: firestore.Client):
         super().__init__(db, "inspections", Inspection)
     '''получает все инспекции конкретного инженера по его ID'''
-    '''def get_inspections_by_eng_id(self, engineer_id, limit: Optional[int] = None):
-        docs = self.collection.where("engineer_id", "==", engineer_id).stream()
-        return [self.model_cls.from_dict(doc) for doc in docs]'''
-
     def get_inspections_by_eng_id(self, engineer_id: str, limit: Optional[int] = None) -> List[Inspection]:
         return self.get_by_field("engineer_id", engineer_id, limit)
-
+    '''получает все инспекции'''
     def get_all_inspections(self, limit: Optional[int] = None):
         return self.get_all(limit)
-
+    def get_status_of_inspection(self, inspection_id: str):
+        inspection = self.get_by_id(inspection_id)
+        return inspection.status_sync
     '''добавление инспекции'''
     def add_inspection(self, inspection: Inspection) -> str:
         return self.add(inspection.to_dict())
-
     '''удаление всех инспекций'''
     def delete_all_inspections(self):
         docs = self.collection.stream()

@@ -2,6 +2,7 @@ from app.services import FirebaseService
 from app.services import CloudinaryService
 from app.imports import List
 
+'''общий сервис для управлением хранилищами'''
 class StorageService:
     _instance = None
     def __new__(cls):
@@ -14,11 +15,13 @@ class StorageService:
         self._firebase = FirebaseService()
         self._cloudinary = CloudinaryService()
 
+    '''получение инспекции по id инженера'''
     def get_inspections_by_engineer(self, engineer_id: str, limit: int = None):
-        return self._firebase.inspections_collection.get_inspections_by_eng_id(engineer_id, limit)
+        return self._firebase.get_inspections_by_engineer(engineer_id, limit)
 
+    '''добавление инспекции'''
     def add_inspection(self, inspection) -> str:
-        return self._firebase.inspections_collection.add_inspection(inspection)
+        return self._firebase.add_inspection(inspection)
 
 
 

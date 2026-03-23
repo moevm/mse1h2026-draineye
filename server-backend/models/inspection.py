@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from app.imports import datetime, List, Optional
+from app.schemas import InspectionSchema, ModelVerdictSchema
 
 '''
 класс для хранения вердикта, вынесенного ML моделью
@@ -33,6 +34,18 @@ class ModelVerdict:
             damage_degree = data["damage_degree"],
             accuracy_model = data["accuracy_model"],
             comments= data["comments"]
+        )
+
+    '''преобразование из схемы'''
+    @classmethod
+    def from_schema(cls, schema):
+        return cls(
+            material=schema.material,
+            state=schema.state,
+            damage_type=schema.damage_type,
+            damage_degree=schema.damage_degree,
+            accuracy_model=schema.accuracy_model,
+            comments=schema.comments
         )
 
 '''
@@ -74,4 +87,17 @@ class Inspection:
             name = data['name'],
             photos=data['photos'].copy(),
             status_sync=data['status_sync']
+        )
+
+    '''преобразование из схемы'''
+    @classmethod
+    def from_schema(cls, schema: InspectionSchema, photos: List[str] = None):
+        return cls(
+            engineer_id=schema.engineer_id,
+            timestamp=schema.timestamp,
+            model_verdict=ModelVerdict.from_schema(schema.model_verdict),
+            address=schema.address,
+            name=schema.name,
+            photos=photos or schema.photos,
+            status_sync=schema.status_sync
         )
