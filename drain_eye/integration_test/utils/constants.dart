@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 class TestConstants {
   // Тестовые данные
   static const String testEmail = 'ivanov@mail.com';
