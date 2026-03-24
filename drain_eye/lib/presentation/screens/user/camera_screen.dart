@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
+import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
 import 'package:drain_eye/presentation/screens/user/model_result_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 const _teal = Color(0xFF0D9488);
@@ -29,6 +33,19 @@ class _CameraScreenState extends State<CameraScreen> {
 
   /// Пути к снимкам текущей сессии (несколько кадров одной инспекции).
   final List<String> _sessionPhotoPaths = [];
+
+  int _captureSeq = 0;
+
+  /// Копия в уникальный файл: плагин камеры может переиспользовать один путь,
+  /// тогда усреднение по списку фактически читает только последний снимок.
+  Future<String> _persistSessionPhoto(String sourcePath) async {
+    final dir = Directory.systemTemp;
+    final name =
+        'drain_insp_${DateTime.now().microsecondsSinceEpoch}_${_captureSeq++}.jpg';
+    final dest = File('${dir.path}${Platform.pathSeparator}$name');
+    await File(sourcePath).copy(dest.path);
+    return dest.path;
+  }
 
   @override
   void initState() {
@@ -127,7 +144,9 @@ class _CameraScreenState extends State<CameraScreen> {
     try {
       final xfile = await c.takePicture();
       if (!mounted) return;
-      setState(() => _sessionPhotoPaths.add(xfile.path));
+      final storedPath = await _persistSessionPhoto(xfile.path);
+      if (!mounted) return;
+      setState(() => _sessionPhotoPaths.add(storedPath));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -146,20 +165,11 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  Future<void> _goToResult() async {
+  void _requestAnalysisAndNavigate() {
     if (_sessionPhotoPaths.isEmpty) return;
-    final saved = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ModelResultScreen(
-          photoPaths: List<String>.from(_sessionPhotoPaths),
-        ),
-      ),
-    );
-    if (!mounted) return;
-    if (saved == true) {
-      setState(() => _sessionPhotoPaths.clear());
-    }
+    context.read<NewInspectionBloc>().add(
+          RunDamageAnalysis(List<String>.from(_sessionPhotoPaths)),
+        );
   }
 
   @override
@@ -170,37 +180,71 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Expanded(child: _buildViewport()),
-          const SizedBox(height: 12),
-          if (_sessionPhotoPaths.isNotEmpty) ...[
-            Text(
-              'Снято снимков: ${_sessionPhotoPaths.length}',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _gray500),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: FilledButton(
-                onPressed: _goToResult,
-                style: FilledButton.styleFrom(
-                  backgroundColor: _teal,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text(
-                  'Далее к результату (${_sessionPhotoPaths.length})',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
+    return BlocConsumer<NewInspectionBloc, NewInspectionState>(
+      listener: (context, state) {
+        if (state is NewInspectionAnalysisSuccess) {
+          Navigator.of(context)
+              .push<bool>(
+            MaterialPageRoute(
+              builder: (_) => ModelResultScreen(
+                photoPaths: state.photoPaths,
+                modelResult: state.result,
               ),
             ),
-            const SizedBox(height: 12),
-          ],
-          Row(
+          )
+              .then((saved) {
+            if (!context.mounted) return;
+            context.read<NewInspectionBloc>().add(ResetNewInspection());
+            if (saved == true) {
+              setState(() => _sessionPhotoPaths.clear());
+            }
+          });
+        } else if (state is NewInspectionAnalysisFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+          context.read<NewInspectionBloc>().add(ResetNewInspection());
+        }
+      },
+      builder: (context, state) {
+        final analyzing = state is NewInspectionAnalyzing;
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Expanded(child: _buildViewport()),
+              const SizedBox(height: 12),
+              if (_sessionPhotoPaths.isNotEmpty) ...[
+                Text(
+                  'Снято снимков: ${_sessionPhotoPaths.length}',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _gray500),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: FilledButton(
+                    onPressed: analyzing ? null : _requestAnalysisAndNavigate,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _teal,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: analyzing
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Text(
+                            'Далее к результату (${_sessionPhotoPaths.length})',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _circleButton(Icons.photo_library_outlined, 44, onPressed: null),
@@ -278,6 +322,8 @@ class _CameraScreenState extends State<CameraScreen> {
           ),
         ],
       ),
+    );
+      },
     );
   }
 

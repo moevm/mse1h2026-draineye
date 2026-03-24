@@ -1,0 +1,121 @@
+import 'package:drain_eye/domain/entities/inspection.dart';
+
+/// DTO ответа API (Firestore / FastAPI) → [Inspection] домена.
+class ModelVerdictModel {
+  ModelVerdictModel({
+    required this.material,
+    required this.state,
+    required this.damageType,
+    this.damageDegree,
+    required this.accuracy,
+    required this.comments,
+  });
+
+  final String material;
+  final int state;
+  final String damageType;
+  final double? damageDegree;
+  final double accuracy;
+  final String comments;
+
+  factory ModelVerdictModel.fromJson(Map<String, dynamic> json) {
+    final acc = json['accuracy_model'] ?? json['accuracy'];
+    final accNum = acc is num ? acc.toDouble() : double.tryParse('$acc') ?? 0.0;
+    final rawDeg = json['damage_degree'];
+    return ModelVerdictModel(
+      material: json['material'] as String? ?? 'unknown',
+      state: (json['state'] as num?)?.toInt() ?? 0,
+      damageType: json['damage_type'] as String? ?? '',
+      damageDegree: rawDeg == null ? null : (rawDeg as num).toDouble(),
+      accuracy: accNum,
+      comments: json['comments'] as String? ?? '',
+    );
+  }
+}
+
+class InspectionModel {
+  InspectionModel({
+    this.inspectionId,
+    required this.engineerId,
+    required this.timestamp,
+    required this.modelVerdict,
+    required this.address,
+    required this.name,
+    required this.photos,
+    required this.statusSync,
+  });
+
+  final String? inspectionId;
+  final String engineerId;
+  final DateTime timestamp;
+  final ModelVerdictModel modelVerdict;
+  final String address;
+  final String name;
+  final List<String> photos;
+  final String statusSync;
+
+  factory InspectionModel.fromJson(Map<String, dynamic> json) {
+    final rawMv = json['model_verdict'];
+    if (rawMv is! Map) {
+      throw FormatException('model_verdict отсутствует или не объект');
+    }
+    final mvMap = Map<String, dynamic>.from(rawMv);
+    final photos = <String>[];
+    final pr = json['photos'];
+    if (pr is List) {
+      for (final p in pr) {
+        photos.add(p?.toString() ?? '');
+      }
+    }
+    final ts = json['timestamp'];
+    final timestamp = ts is String
+        ? (DateTime.tryParse(ts) ?? DateTime.fromMillisecondsSinceEpoch(0))
+        : DateTime.fromMillisecondsSinceEpoch(0);
+
+    return InspectionModel(
+      inspectionId: json['inspection_id'] as String? ?? json['id']?.toString(),
+      engineerId: json['engineer_id']?.toString() ?? '',
+      timestamp: timestamp,
+      modelVerdict: ModelVerdictModel.fromJson(mvMap),
+      address: json['address'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      photos: photos,
+      statusSync: json['status_sync'] as String? ?? 'pending',
+    );
+  }
+
+  Inspection toDomain({required int userId, required int index}) {
+    final uid = int.tryParse(engineerId) ?? userId;
+    final defects = <String>[];
+    if (modelVerdict.damageType.isNotEmpty) {
+      defects.add(modelVerdict.damageType);
+    }
+    final c = modelVerdict.accuracy;
+    final confidence = c > 1.0 ? (c / 100.0).clamp(0.0, 1.0) : c.clamp(0.0, 1.0);
+
+    return Inspection(
+      id: _domainId(inspectionId, index),
+      userId: uid,
+      timestamp: timestamp,
+      photoUrl: photos.isNotEmpty ? photos.first : '',
+      material: modelVerdict.material,
+      confidence: confidence,
+      condition: modelVerdict.state.clamp(0, 5),
+      defects: defects,
+      synchronized: statusSync == 'save' || statusSync == 'synced',
+      address: address,
+      damageTypeCode:
+          modelVerdict.damageType.isEmpty ? null : modelVerdict.damageType,
+      damageDegree: modelVerdict.damageDegree,
+    );
+  }
+
+  static int _domainId(String? inspectionId, int index) {
+    if (inspectionId != null && inspectionId.isNotEmpty) {
+      final parsed = int.tryParse(inspectionId);
+      if (parsed != null) return parsed;
+      return inspectionId.hashCode.abs() % 1000000000;
+    }
+    return index + 1;
+  }
+}
