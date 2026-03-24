@@ -9,7 +9,11 @@ class Inspection {
   final int condition;  
   final List<String> defects;
   final bool synchronized;           
-  final String address;     
+  final String address;
+  /// Код типа повреждения из model_verdict (corrosion / crack / no_damage).
+  final String? damageTypeCode;
+  /// Степень повреждения из model_verdict (если есть).
+  final double? damageDegree;
 
   Inspection({
     required this.id,
@@ -22,6 +26,8 @@ class Inspection {
     required this.defects,
     required this.synchronized,
     required this.address,
+    this.damageTypeCode,
+    this.damageDegree,
   });
 
   // отображение состояния в UI

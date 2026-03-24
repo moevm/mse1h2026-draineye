@@ -8,7 +8,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 
 // локальный tflite: без ручной нормализации; вход [1,H,W,3] float под размер декодированного JPEG
 class LocalDamageModelDataSource {
-  static const String _assetPath = 'assets/models/model.tflite';
+  static const String _assetPath = 'assets/model.tflite';
   static const List<String> kDamageTypeByClass = [
     'corrosion',
     'crack',

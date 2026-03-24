@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drain_eye/data/datasources/local_damage_model_datasource.dart';
+import 'package:drain_eye/data/models/inspection_model.dart';
 import 'package:drain_eye/domain/entities/inspection.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
 import 'package:drain_eye/domain/repositories/inspection_repository.dart';
@@ -9,7 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-// реализация репозитория: мок истории + tflite + POST новой инспекции
+// реализация репозитория: GET инспекций с сервера, tflite, POST новой инспекции
 class InspectionRepositoryImpl implements InspectionRepository {
   InspectionRepositoryImpl({
     http.Client? httpClient,
@@ -21,65 +22,44 @@ class InspectionRepositoryImpl implements InspectionRepository {
   final LocalDamageModelDataSource _damageModel;
 
   // ссылка будет меняться
-  final String baseUrl = 'https://hpbk3p-95-161-61-238.ru.tuna.am';
+  final String baseUrl = 'https://5ou3ck-95-161-61-238.ru.tuna.am';
 
   @override
   Stream<List<Inspection>> getUserInspections(int userId) {
-    final insp = [
-      Inspection(
-        id: 1,
-        userId: 1,
-        timestamp: DateTime(2026, 2, 23, 14, 32),
-        photoUrl: 'no',
-        material: 'Бетон',
-        confidence: 0.92,
-        condition: 4,
-        defects: List.empty(),
-        synchronized: true,
-        address: 'ул. Ленина, 15 — колодец #3',
-      ),
-      Inspection(
-        id: 2,
-        userId: 1,
-        timestamp: DateTime(2026, 2, 22, 10, 15),
-        photoUrl: 'no',
-        material: 'Пластик',
-        confidence: 0.67,
-        condition: 3,
-        defects: List.empty(),
-        synchronized: true,
-        address: 'пр. Мира, 8 — труба D500',
-      ),
-      Inspection(
-        id: 3,
-        userId: 1,
-        timestamp: DateTime(2026, 2, 21, 16, 48),
-        photoUrl: 'no',
-        material: 'Металл',
-        confidence: 0.45,
-        condition: 1,
-        defects: List.empty(),
-        synchronized: true,
-        address: 'ул. Садовая, 22 — коллектор',
-      ),
-      Inspection(
-        id: 4,
-        userId: 1,
-        timestamp: DateTime(2026, 2, 20, 9, 3),
-        photoUrl: 'no',
-        material: 'Бетон',
-        confidence: 0.98,
-        condition: 5,
-        defects: List.empty(),
-        synchronized: true,
-        address: 'ул. Пушкина, 4 — дренаж',
-      ),
-    ];
-    final result = Stream.value(insp);
-    if (kDebugMode) {
-      print('>>> Returning ${insp.length} inspections from repo');
+    return Stream.fromFuture(_fetchInspectionsForUser(userId));
+  }
+
+  /// GET `/inspections_by_user/{id}` — список инспекций инженера (как в server-backend).
+  Future<List<Inspection>> _fetchInspectionsForUser(int userId) async {
+    final uri = Uri.parse(
+      '$baseUrl/inspections_by_user/${Uri.encodeComponent(userId.toString())}',
+    );
+    final response = await _httpClient.get(
+      uri,
+      headers: {'Accept': 'application/json'},
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception(
+        'get_inspections: ${response.statusCode} ${response.body}',
+      );
     }
-    return result;
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) {
+      throw FormatException('Ожидался JSON-массив инспекций');
+    }
+    final out = <Inspection>[];
+    for (var i = 0; i < decoded.length; i++) {
+      final raw = decoded[i];
+      if (raw is! Map) {
+        throw FormatException('Элемент списка инспекций не объект');
+      }
+      final dto = InspectionModel.fromJson(Map<String, dynamic>.from(raw));
+      out.add(dto.toDomain(userId: userId, index: i));
+    }
+    if (kDebugMode) {
+      print('>>> getUserInspections($userId): ${out.length} записей');
+    }
+    return out;
   }
 
   @override

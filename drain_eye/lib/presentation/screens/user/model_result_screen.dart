@@ -1,6 +1,8 @@
 import 'dart:io' show File;
 
+import 'package:drain_eye/core/confidence_accent_color.dart';
 import 'package:drain_eye/core/constants.dart';
+import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -10,8 +12,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 const _teal = Color(0xFF0D9488);
 const _gray400 = Color(0xFF94A3B8);
 const _gray500 = Color(0xFF64748B);
-const _green = Color(0xFF22C55E);
-const _orange = Color(0xFFF59E0B);
 
 // экран результата модели (UC-8)
 class ModelResultScreen extends StatelessWidget {
@@ -37,26 +37,12 @@ class ModelResultScreen extends StatelessWidget {
 
   String _orQuestion(String? v) => v ?? '?';
 
-  /// Подпись для пользователя; в домене/API остаются английские коды.
-  static String _damageTypeRu(String code) {
-    switch (code) {
-      case 'corrosion':
-        return 'Коррозия';
-      case 'crack':
-        return 'Трещина';
-      case 'no_damage':
-        return 'Повреждений нет';
-      default:
-        return 'Неизвестно';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final mr = modelResult;
-    final confidencePercent = mr != null ? (mr.accuracyModel * 100).round() : 0;
-    final isHighConfidence = mr == null || confidencePercent >= 60;
-    final accentColor = isHighConfidence ? _green : _orange;
+    final accentColor = mr == null
+        ? _gray400
+        : confidenceAccentColorFromPercent((mr.accuracyModel * 100).round());
 
     return BlocListener<NewInspectionBloc, NewInspectionState>(
       listenWhen: (prev, curr) =>
@@ -107,31 +93,15 @@ class ModelResultScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _row('Материал', _orQuestion(mr?.material)),
                     _row('Состояние', _orQuestion(mr?.state?.toString())),
-                    _row('Тип повреждения', mr != null ? _damageTypeRu(mr.damageType) : '?'),
+                    _row('Тип повреждения', mr != null ? damageTypeLabelRu(mr.damageType) : '?'),
                     _row('Степень повреждения', _orQuestion(mr?.damageDegree?.toString())),
-                    _row('Уверенность модели', mr != null ? '${(mr.accuracyModel * 100).toStringAsFixed(1)}%' : '?'),
+                    _row(
+                      'Уверенность модели',
+                      mr != null ? '${(mr.accuracyModel * 100).toStringAsFixed(1)}%' : '?',
+                      valueColor: mr != null ? accentColor : null,
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _gauge(
-                      mr != null ? _damageTypeRu(mr.damageType) : '?',
-                      'Тип',
-                      accentColor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _gauge(
-                      mr != null ? '$confidencePercent%' : '?',
-                      'Уверенность',
-                      accentColor,
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(height: 24),
               BlocBuilder<NewInspectionBloc, NewInspectionState>(
@@ -197,7 +167,7 @@ class ModelResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _row(String label, String value) {
+  Widget _row(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -212,7 +182,11 @@ class ModelResultScreen extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF0F172A)),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? const Color(0xFF0F172A),
+              ),
             ),
           ),
         ],
@@ -220,29 +194,6 @@ class ModelResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _gauge(String value, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: color),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 11, color: _gray400)),
-        ],
-      ),
-    );
-  }
 }
 
 class _ResultPhotoCarousel extends StatefulWidget {
