@@ -40,7 +40,7 @@
 
 ## Итерация №2
 ### Презентация
-[Презентация]()
+[Презентация](https://github.com/moevm/mse1h2026-draineye/blob/reports/docs/presentation2.pdf)
 ### Скринкасты
 [Скринкаст приложения на 2 итерации](https://disk.yandex.ru/d/dfmxxFZ8aqkmpw)
 ### Запланированные задачи
