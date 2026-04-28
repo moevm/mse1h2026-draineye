@@ -1,4 +1,4 @@
-import 'dart:io' show File;
+import 'dart:io' if (dart.library.html) 'package:drain_eye/stubs/dart_io_stub.dart';
 
 import 'package:drain_eye/core/confidence_accent_color.dart';
 import 'package:drain_eye/core/constants.dart';
