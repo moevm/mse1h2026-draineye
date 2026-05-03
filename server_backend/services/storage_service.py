@@ -36,10 +36,9 @@ class StorageService:
     '''создает инспекцию и загружает связанные фото'''
     async def create_inspection_with_photos(
         self,
-        inspection_json: str,
+        inspection_schema: InspectionSchema,
         files: Optional[List[UploadFile]] = None
     ) -> dict:
-        inspection_schema = InspectionSchema.model_validate_json(inspection_json)
         inspection = Inspection.from_schema(inspection_schema)
         inspection_id = self.add_inspection(inspection)
 
@@ -65,3 +64,12 @@ class StorageService:
             "photo_urls": photo_urls,
             "status": "created"
         }
+
+    def verify_token(self, token: str) -> Optional[str]:
+        return self._firebase.verify_token(token)
+
+    def get_user(self, uid: str):
+        return  self._firebase.get_user_by_uid(uid)
+
+    def log_activity(self, uid: str):
+        return self._firebase.log_activity(uid)

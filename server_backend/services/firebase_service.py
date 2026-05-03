@@ -75,6 +75,7 @@ class FirebaseService:
         except Exception:
             return True
 
+    '''валидация пароля'''
     def validate_password(self, password: str):
         if len(password) < 12:
             raise ValueError("Минимум 12 символов")
@@ -82,6 +83,9 @@ class FirebaseService:
             raise ValueError("Нужна хотя бы одна цифра")
         if not any(c.isupper() for c in password):
             raise ValueError("Пароль должен содержать заглавную букву")
+
+    def get_user_by_uid(self, uid: str) -> Optional[User]:
+        return self.users_collection.get_by_uid(uid)
 
     '''регистрирует инспектора'''
     def register_inspector(self, email: str, password: str, full_name: str) -> str:
