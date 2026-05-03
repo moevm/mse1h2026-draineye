@@ -238,29 +238,11 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
 
     return Column(
       children: [
-        // заголовок + кнопка
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              const Text('Все пользователи', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
-              const Spacer(),
-              SizedBox(
-                height: 34,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _teal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  onPressed: () {},
-                  icon: const Icon(Icons.person_add, size: 16),
-                  label: const Text('Добавить', style: TextStyle(fontSize: 13)),
-                ),
-              ),
-            ],
+          child: const Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Все пользователи', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
           ),
         ),
         Expanded(
