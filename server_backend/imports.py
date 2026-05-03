@@ -12,3 +12,4 @@ from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
 from datetime import timezone
+from firebase_admin import auth

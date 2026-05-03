@@ -1,8 +1,8 @@
-from app.imports import firebase_admin
-from app.imports import credentials, firestore
-from app.repositories import UsersCollection, InspectionsCollection
-from app.config import settings
-from app.models import Inspection
+from server_backend.imports import credentials, firestore, datetime, timezone, Optional, firebase_admin, auth
+from server_backend.repositories import UsersCollection, InspectionsCollection
+from server_backend.models.user import User, UserRole
+from server_backend.config import settings
+from server_backend.models.inspection import Inspection
 
 '''
 cинглтон-сервис для управления подключением к Firebase и доступа к коллекциям
@@ -40,6 +40,37 @@ class FirebaseService:
         if 'users' not in self._collections:
             self._collections['users'] = UsersCollection(self._db)
         return self._collections['users']
+
+    '''создаёт пользователя в Firebase Auth и сохраняет профиль в Firestore'''
+    def create_user_with_profile(self, email: str, password: str, full_name: str, role: UserRole) -> str:
+        user_record = auth.create_user(
+            email=email,
+            password=password,
+            display_name=full_name
+        )
+        new_user = User(
+            user_id=user_record.uid,
+            email=email,
+            full_name=full_name,
+            role=role,
+            created_at=datetime.now(timezone.utc),
+            last_activity=datetime.now(timezone.utc),
+            is_active=True
+        )
+        self._db.collection("users").document(user_record.uid).set(new_user.to_dict())
+        return user_record.uid
+
+    '''обновляет время последней активности пользователя'''
+    def log_activity(self, uid: str):
+        self.users_collection.update_activity(uid)
+
+    '''верифицирует ID-токен и возвращает UID'''
+    def verify_token(self, token: str) -> Optional[str]:
+        try:
+            decoded_token = auth.verify_id_token(token)
+            return decoded_token['uid']
+        except Exception:
+            return None
 
     '''для доступа к коллекции инспекций'''
     @property
