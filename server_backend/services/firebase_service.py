@@ -42,7 +42,10 @@ class FirebaseService:
         return self._collections['users']
 
     '''создаёт пользователя в Firebase Auth и сохраняет профиль в Firestore'''
-    def create_user_with_profile(self, email: str, password: str, full_name: str, role: UserRole) -> str:
+    def register_user(self, email: str, password: str, full_name: str, role: UserRole) -> str:
+        if self.is_email_taken(email):
+            raise ValueError("Email уже зарегистрирован")
+
         user_record = auth.create_user(
             email=email,
             password=password,
@@ -57,8 +60,26 @@ class FirebaseService:
             last_activity=datetime.now(timezone.utc),
             is_active=True
         )
-        self._db.collection("users").document(user_record.uid).set(new_user.to_dict())
-        return user_record.uid
+
+        return self.users_collection.add_user(new_user)
+
+    '''проверяет, занят ли email в Firebase Auth'''
+    def is_email_taken(self, email: str) -> bool:
+        try:
+            auth.get_user_by_email(email)
+            return True
+        except auth.UserNotFoundError:
+            return False
+        except Exception:
+            return True
+
+    '''регистрирует инспектора'''
+    def register_inspector(self, email: str, password: str, full_name: str) -> str:
+        return self.register_user(email, password, full_name, UserRole.INSPECTOR)
+
+    '''регистрирует администратора'''
+    def register_admin(self, email: str, password: str, full_name: str) -> str:
+        return self.register_user(email, password, full_name, UserRole.ADMIN)
 
     '''обновляет время последней активности пользователя'''
     def log_activity(self, uid: str):

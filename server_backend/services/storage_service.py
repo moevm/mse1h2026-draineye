@@ -1,6 +1,5 @@
-from app.services import FirebaseService
-from app.services import CloudinaryService
-from app.imports import List
+from server_backend.services import FirebaseService
+from server_backend.services.cloudinary_service import CloudinaryService
 
 '''общий сервис для управлением хранилищами'''
 class StorageService:
@@ -22,6 +21,14 @@ class StorageService:
     '''добавление инспекции'''
     def add_inspection(self, inspection) -> str:
         return self._firebase.add_inspection(inspection)
+
+    '''регистрирует инспектора'''
+    def register_inspector(self, email: str, password: str, full_name: str) -> str:
+        return self._firebase.register_inspector(email, password, full_name)
+
+    '''регистрирует администратора'''
+    def register_admin(self, email: str, password: str, full_name: str) -> str:
+        return self._firebase.register_admin(email, password, full_name)
 
 
 
