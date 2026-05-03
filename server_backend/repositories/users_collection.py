@@ -7,33 +7,35 @@ class UsersCollection(BaseCollection):
     def __init__(self, db: firestore.Client):
         super().__init__(db, "users", User)
 
-    '''получает пользователя по email'''
+    '''добавление пользователя'''
+    def add_user(self, user: User):
+        doc_ref = self.collection.document(user.user_id)
+        doc_ref.set(user.to_dict())
+        return user.user_id
+
+    '''получение пользователя по email'''
     def get_by_email(self, email: str, role: UserRole = UserRole.INSPECTOR) -> Optional[User]:
-        docs = self.collection.where("email", "==", email).where("role", "==", role.value).limit(1).stream()
-        for doc in docs:
-            return User.from_dict(doc)
+        users = self.get_by_field("email", email, limit=1)
+        for user in users:
+            if user.role == role:
+                return user
         return None
 
-    '''получает список пользователей по полному имени'''
+    '''получения списка пользователей по полному имени и роли'''
     def get_by_full_name(self, full_name: str, role: UserRole = UserRole.INSPECTOR) -> List[User]:
-        docs = self.collection.where("full_name", "==", full_name).where("role", "==", role.value).stream()
-        return [User.from_dict(doc) for doc in docs]
+        users = self.get_by_field("full_name", full_name)
+        return [user for user in users if user.role == role]
 
-    '''получает пользователя по UID из Firestore'''
+    '''получение пользователя по UID из Firestore (переопределяем get_by_id для чистоты имени)'''
     def get_by_uid(self, uid: str) -> Optional[User]:
-        doc = self.collection.document(uid).get()
-        if not doc.exists:
-            return None
-        return User.from_dict(doc)
+        return self.get_by_id(uid)
 
-    '''получает список активных пользователей по роли'''
+    '''получения списка активных пользователей по роли'''
     def get_active_by_role(self, role: UserRole, limit: int = None) -> List[User]:
-        query = self.collection.where("role", "==", role.value).where("is_active", "==", True)
-        if limit:
-            query = query.limit(limit)
-        return [User.from_dict(doc) for doc in query.stream()]
+        all_with_role = self.get_by_field("role", role.value, limit=limit)
+        return [user for user in all_with_role if user.is_active]
 
-    '''обновляет время последней активности пользователя'''
+    '''обновление время последней активности пользователя'''
     def update_activity(self, user_id: str):
         from datetime import datetime, timezone
         self.collection.document(user_id).update({
@@ -51,3 +53,11 @@ class UsersCollection(BaseCollection):
         self.collection.document(user_id).update({
             "role": new_role.value
         })
+
+    '''удаляет пользователя по UID'''
+    def delete_user(self, user_id: str) -> bool:
+        return self.delete_by_id(user_id)
+
+    '''удаляет всех пользователей в коллекции'''
+    def delete_all_users(self) -> int:
+        return self.delete_all_test()

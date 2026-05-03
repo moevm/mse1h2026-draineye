@@ -29,9 +29,3 @@ class StorageService:
     '''регистрирует администратора'''
     def register_admin(self, email: str, password: str, full_name: str) -> str:
         return self._firebase.register_admin(email, password, full_name)
-
-
-
-
-
-

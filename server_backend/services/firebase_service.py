@@ -46,6 +46,8 @@ class FirebaseService:
         if self.is_email_taken(email):
             raise ValueError("Email уже зарегистрирован")
 
+        self.validate_password(password)
+
         user_record = auth.create_user(
             email=email,
             password=password,
@@ -72,6 +74,14 @@ class FirebaseService:
             return False
         except Exception:
             return True
+
+    def validate_password(self, password: str):
+        if len(password) < 12:
+            raise ValueError("Минимум 12 символов")
+        if not any(c.isdigit() for c in password):
+            raise ValueError("Нужна хотя бы одна цифра")
+        if not any(c.isupper() for c in password):
+            raise ValueError("Пароль должен содержать заглавную букву")
 
     '''регистрирует инспектора'''
     def register_inspector(self, email: str, password: str, full_name: str) -> str:

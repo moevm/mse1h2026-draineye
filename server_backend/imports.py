@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, Form
 from datetime import datetime
-from pydantic import BaseModel
 from enum import Enum
 from datetime import timezone
 from firebase_admin import auth
+from pydantic import BaseModel, EmailStr
