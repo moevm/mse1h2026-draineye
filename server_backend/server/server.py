@@ -1,8 +1,7 @@
-from server_backend.services import StorageService
+from server_backend.services.storage_service import StorageService
 from server_backend.imports import Optional, List
 from server_backend.imports import FastAPI, Depends, UploadFile, File, HTTPException, Form
-from server_backend.models import ModelVerdict, Inspection
-from server_backend.schemas import InspectionSchema, ModelVerdictSchema
+from server_backend.schemas.auth_request import RegisterRequest
 
 server_app = FastAPI()
 
@@ -24,27 +23,13 @@ async def create_inspection(
     ss: StorageService = Depends(create_storage_service)
 ):
     try:
-        inspection_schema = InspectionSchema.model_validate_json(inspection_json)
-        inspection = Inspection.from_schema(inspection_schema)
-        inspection_id = ss.add_inspection(inspection)
-
-        if files and inspection_id:
-            filenames = [f.filename for f in files if f and f.filename]
-            public_ids = ss._cloudinary.generate_public_ids(
-                filenames=filenames,
-                engineer_id=inspection_schema.engineer_id,
-                inspection_id=inspection_id
-            )
-            placeholder_urls = [pid for pid in public_ids]
-            ss._firebase.inspections_collection.collection.document(inspection_id).update({
-                "photos": placeholder_urls
-            })
-            await ss._cloudinary.upload_photos(files, public_ids)
-
+        result = await ss.create_inspection_with_photos(inspection_json, files)
         return {
-            "inspection_id": inspection_id,
-            "status": "created"
+            "inspection_id": result["inspection_id"],
+            "status": result["status"]
         }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

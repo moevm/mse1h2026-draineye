@@ -1,5 +1,8 @@
 from server_backend.services import FirebaseService
 from server_backend.services.cloudinary_service import CloudinaryService
+from server_backend.imports import Optional, List, UploadFile
+from server_backend.schemas import InspectionSchema
+from server_backend.models import Inspection
 
 '''общий сервис для управлением хранилищами'''
 class StorageService:
@@ -29,3 +32,36 @@ class StorageService:
     '''регистрирует администратора'''
     def register_admin(self, email: str, password: str, full_name: str) -> str:
         return self._firebase.register_admin(email, password, full_name)
+
+    '''создает инспекцию и загружает связанные фото'''
+    async def create_inspection_with_photos(
+        self,
+        inspection_json: str,
+        files: Optional[List[UploadFile]] = None
+    ) -> dict:
+        inspection_schema = InspectionSchema.model_validate_json(inspection_json)
+        inspection = Inspection.from_schema(inspection_schema)
+        inspection_id = self.add_inspection(inspection)
+
+        photo_urls = []
+        if files and inspection_id and len(files) > 0:
+            valid_files = [f for f in files if f and f.filename]
+            if valid_files:
+                filenames = [f.filename for f in valid_files]
+                public_ids = self._cloudinary.generate_public_ids(
+                    filenames=filenames,
+                    engineer_id=inspection_schema.engineer_id,
+                    inspection_id=inspection_id
+                )
+
+                photo_urls = await self._cloudinary.upload_photos(valid_files, public_ids)
+                placeholder_urls = [pid for pid in public_ids]
+                self._firebase.inspections_collection.collection.document(inspection_id).update({
+                    "photos": placeholder_urls
+                })
+
+        return {
+            "inspection_id": inspection_id,
+            "photo_urls": photo_urls,
+            "status": "created"
+        }
