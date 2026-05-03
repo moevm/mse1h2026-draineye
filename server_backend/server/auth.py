@@ -1,4 +1,4 @@
-from server_backend.imports import Depends, HTTPException, status, Header, Optional
+from server_backend.imports import Depends, HTTPException, status, Header, Optional, auth
 from server_backend.services.storage_service import StorageService
 from server_backend.models.user import User, UserRole
 
@@ -22,6 +22,23 @@ def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный или истёкший токен"
+        )
+    try:
+        user_record = auth.get_user(uid)
+        if not user_record.email_verified:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Пожалуйста, подтвердите ваш email по ссылке из письма"
+            )
+    except auth.UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден в системе аутентификации"
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка проверки статуса пользователя"
         )
 
     user = ss.get_user(uid)
