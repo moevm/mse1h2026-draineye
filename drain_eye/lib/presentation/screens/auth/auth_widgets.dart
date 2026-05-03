@@ -161,7 +161,7 @@ Widget authInputField({
 }
 
 /// Основная кнопка (teal).
-Widget authPrimaryButton({required String label, required VoidCallback onPressed}) {
+Widget authPrimaryButton({required String label, required VoidCallback? onPressed}) {
   return SizedBox(
     width: double.infinity,
     height: 44,
