@@ -56,10 +56,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!RegExp(r'[A-Z]').hasMatch(value)) {
       return 'пароль должен содержать хотя бы одну заглавную букву';
     }
-    // проверка на наличие специального символа (не буква, не цифра)
-    if (!RegExp(r'[^a-zA-Z0-9]').hasMatch(value)) {
-      return 'пароль должен содержать хотя бы один специальный символ';
-    }
     return null;
   }
 
@@ -166,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Пароль должен содержать не менее 6 символов, включая строчную и заглавную буквы и специальный символ',
+                    'Пароль должен содержать не менее 6 символов, включая строчную и заглавную буквы',
                     style: const TextStyle(fontSize: 12, color: gray500),
                   ),
                   const SizedBox(height: 6),

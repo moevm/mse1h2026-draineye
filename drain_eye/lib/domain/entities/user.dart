@@ -1,6 +1,6 @@
 // сущность пользователя (инспектора)
 class User {
-  final int id;
+  final String id;
   final String email;
   final String name;
   final String? avatarUrl;
@@ -17,9 +17,9 @@ class User {
   // создание пользователя из JSON (например, ответа сервера)
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as int,
+      id: (json['user_id'] ?? json['id']).toString(),
       email: json['email'] as String,
-      name: json['name'] as String,
+      name: (json['full_name'] ?? json['name']) as String,
       avatarUrl: json['avatarUrl'] as String?,
       role: json['role'] as String,
     );

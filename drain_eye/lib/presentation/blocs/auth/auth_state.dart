@@ -17,6 +17,13 @@ class AuthAuthenticated extends AuthState {
   AuthAuthenticated(this.user);
 }
 
+// регистрация успешна, письмо подтверждения отправлено
+class AuthRegistrationSuccess extends AuthState {
+  final String email;
+
+  AuthRegistrationSuccess(this.email);
+}
+
 // неавторизован (пользователь вышел или не входил)
 class AuthUnauthenticated extends AuthState {}
 

@@ -9,7 +9,7 @@ class GetUserInspections {
   GetUserInspections(this.repository);
 
   // получает данные об инспекциях от репозитория
-  Stream<List<Inspection>> call(int userId) {
-    return repository.getUserInspections(userId);
+  Stream<List<Inspection>> call() {
+    return repository.getUserInspections();
   }
 }

@@ -20,13 +20,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final int _userId = 123;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      BlocProvider.of<UserInspectionBloc>(context).add(LoadUserInspections(_userId));
+      BlocProvider.of<UserInspectionBloc>(context).add(LoadUserInspections());
     });
   }
 

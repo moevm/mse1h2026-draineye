@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "116254805473",
+    "project_id": "draineye-860f6",
+    "storage_bucket": "draineye-860f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116254805473:android:abda996373c47fd3dd16a0",
+        "android_client_info": {
+          "package_name": "com.example.drain_eye"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "116254805473-v7qalq84jr0p39j610jhmf4bbh44441d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSwkc0uwagPtb2VpoHPVM9W7T3UceUCGs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "116254805473-v7qalq84jr0p39j610jhmf4bbh44441d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

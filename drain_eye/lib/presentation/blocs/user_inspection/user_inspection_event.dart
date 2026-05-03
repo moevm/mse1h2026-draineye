@@ -8,9 +8,7 @@ part of 'user_inspection_bloc.dart';
 abstract class UserInspectionEvent {}
 
 // событие, сигнализирующее о необходимости загрузить список инспекций
-// для конкретного пользователя
+// текущего авторизованного пользователя
 class LoadUserInspections extends UserInspectionEvent {
-  final int userId;
-  
-  LoadUserInspections(this.userId);
+  LoadUserInspections();
 }

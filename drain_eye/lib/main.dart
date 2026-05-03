@@ -5,16 +5,23 @@ import 'package:drain_eye/domain/repositories/inspection_repository.dart';
 import 'package:drain_eye/domain/usecases/check_auth.dart';
 import 'package:drain_eye/domain/usecases/get_user_inspections.dart';
 import 'package:drain_eye/domain/usecases/login_user.dart';
+import 'package:drain_eye/domain/usecases/register_user.dart';
 import 'package:drain_eye/domain/usecases/run_damage_model.dart';
 import 'package:drain_eye/domain/usecases/submit_inspection.dart';
 import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
 import 'package:drain_eye/presentation/blocs/user_inspection/user_inspection_bloc.dart';
 import 'package:drain_eye/presentation/screens/auth/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _initializeFirebase();
+
   final InspectionRepository inspectionRepository = InspectionRepositoryImpl();
   final AuthRepository authRepository = AuthRepositoryImpl();
 
@@ -28,9 +35,11 @@ void main() {
   );
 
   final loginUser = LoginUser(authRepository);
+  final registerUser = RegisterUser(authRepository);
   final checkAuth = CheckAuth(authRepository);
   final authBloc = AuthBloc(
     loginUser: loginUser,
+    registerUser: registerUser,
     checkAuth: checkAuth,
     authRepository: authRepository,
   );
@@ -40,6 +49,14 @@ void main() {
     newInspectionBloc: newInspectionBloc,
     authBloc: authBloc,
   ));
+}
+
+Future<void> _initializeFirebase() async {
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 }
 
 // корневой виджет — стартовый экран: LoginScreen (UC-1)

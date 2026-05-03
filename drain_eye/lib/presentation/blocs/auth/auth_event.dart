@@ -12,6 +12,19 @@ class LoginEvent extends AuthEvent {
   LoginEvent({required this.email, required this.password});
 }
 
+// событие регистрации инспектора
+class RegisterEvent extends AuthEvent {
+  final String fullName;
+  final String email;
+  final String password;
+
+  RegisterEvent({
+    required this.fullName,
+    required this.email,
+    required this.password,
+  });
+}
+
 // событие выхода
 class LogoutEvent extends AuthEvent {}
 
