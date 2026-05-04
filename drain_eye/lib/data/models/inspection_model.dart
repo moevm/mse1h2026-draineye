@@ -1,4 +1,5 @@
 import 'package:drain_eye/domain/entities/inspection.dart';
+import 'package:flutter/foundation.dart';
 
 /// DTO ответа API (Firestore / FastAPI) → [Inspection] домена.
 class ModelVerdictModel {
@@ -60,12 +61,11 @@ class InspectionModel {
       throw FormatException('model_verdict отсутствует или не объект');
     }
     final mvMap = Map<String, dynamic>.from(rawMv);
-    final photos = <String>[];
-    final pr = json['photos'];
-    if (pr is List) {
-      for (final p in pr) {
-        photos.add(p?.toString() ?? '');
-      }
+    final photos = _parsePhotos(json);
+    if (kDebugMode) {
+      debugPrint(
+        '[InspectionModel] id=${json['inspection_id'] ?? json['id']} photos=$photos rawPhotos=${json['photos']}',
+      );
     }
     final ts = json['timestamp'];
     final timestamp = ts is String
@@ -98,6 +98,7 @@ class InspectionModel {
       userId: uid,
       timestamp: timestamp,
       photoUrl: photos.isNotEmpty ? photos.first : '',
+      photoUrls: photos,
       material: modelVerdict.material,
       confidence: confidence,
       condition: modelVerdict.state.clamp(0, 5),
@@ -117,5 +118,38 @@ class InspectionModel {
       return inspectionId.hashCode.abs() % 1000000000;
     }
     return index + 1;
+  }
+
+  static List<String> _parsePhotos(Map<String, dynamic> json) {
+    final raw = json['photos'] ??
+        json['photo_urls'] ??
+        json['photoUrls'] ??
+        json['images'];
+    final photos = <String>[];
+    if (raw is List) {
+      for (final item in raw) {
+        final url = _photoUrlFromRaw(item);
+        if (url != null && url.isNotEmpty) photos.add(url);
+      }
+    } else {
+      final url = _photoUrlFromRaw(raw);
+      if (url != null && url.isNotEmpty) photos.add(url);
+    }
+    return photos;
+  }
+
+  static String? _photoUrlFromRaw(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is String) return raw.trim();
+    if (raw is Map) {
+      final map = Map<String, dynamic>.from(raw);
+      return (map['url'] ??
+              map['secure_url'] ??
+              map['photo_url'] ??
+              map['photoUrl'])
+          ?.toString()
+          .trim();
+    }
+    return raw.toString().trim();
   }
 }

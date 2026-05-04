@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:drain_eye/core/cloudinary_image_url.dart';
 import '../../domain/entities/inspection.dart';
 
 const _teal = Color(0xFF0D9488);
@@ -22,6 +24,7 @@ class InspectionCard extends StatelessWidget {
     final dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
     final dateTimeStr = dateFormat.format(inspection.timestamp);
     final confidencePercent = (inspection.confidence * 100).round();
+    final thumbnailUrl = cloudinaryImageUrl(inspection.photoUrl);
 
     return GestureDetector(
       onTap: onTap,
@@ -42,14 +45,28 @@ class InspectionCard extends StatelessWidget {
         child: Row(
           children: [
             // миниатюра фото
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 56,
+                height: 56,
+                child: thumbnailUrl == null
+                    ? _photoPlaceholder()
+                    : Image.network(
+                        thumbnailUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, error, __) {
+                          if (kDebugMode) {
+                            debugPrint('Inspection thumbnail failed: $thumbnailUrl error=$error');
+                          }
+                          return _photoPlaceholder();
+                        },
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return _photoPlaceholder();
+                        },
+                      ),
               ),
-              child: const Icon(Icons.camera_alt, color: _gray400, size: 24),
             ),
             const SizedBox(width: 12),
             // информация
@@ -103,4 +120,12 @@ class InspectionCard extends StatelessWidget {
       ),
     );
   }
+
+  static Widget _photoPlaceholder() {
+    return Container(
+      color: const Color(0xFFF1F5F9),
+      child: const Icon(Icons.camera_alt, color: _gray400, size: 24),
+    );
+  }
+
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
+import 'package:drain_eye/core/cloudinary_image_url.dart';
 import 'package:drain_eye/core/confidence_accent_color.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/inspection.dart';
@@ -10,10 +12,19 @@ const _gray500 = Color(0xFF64748B);
 
 /// Экран просмотра инспекции (UC-7) — фото, информация, вердикт модели
 /// (те же поля, что на экране результата модели).
-class InspectionScreen extends StatelessWidget {
+class InspectionScreen extends StatefulWidget {
   final Inspection inspection;
 
   const InspectionScreen({super.key, required this.inspection});
+
+  @override
+  State<InspectionScreen> createState() => _InspectionScreenState();
+}
+
+class _InspectionScreenState extends State<InspectionScreen> {
+  int _photoPage = 0;
+
+  Inspection get inspection => widget.inspection;
 
   String _materialUi(Inspection i) {
     final m = i.material.trim();
@@ -50,22 +61,7 @@ class InspectionScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.camera_alt, color: _gray400, size: 40),
-                  const SizedBox(height: 8),
-                  Text('Фото 1 из 3', style: TextStyle(fontSize: 11, color: _gray400)),
-                ],
-              ),
-            ),
+            _photoCarousel(),
             const SizedBox(height: 16),
 
             _detailCard(
@@ -133,6 +129,95 @@ class InspectionScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _photoCarousel() {
+    final photoUrls = inspection.photoUrls;
+    if (photoUrls.isEmpty) {
+      return _photoPlaceholder('Фото не найдено');
+    }
+
+    final imageUrls = photoUrls
+        .map(
+          (url) => cloudinaryImageUrl(
+            url,
+            transformations: 'w_900,h_500,c_fit,q_auto,f_auto',
+          ),
+        )
+        .whereType<String>()
+        .toList();
+
+    if (imageUrls.isEmpty) {
+      return _photoPlaceholder('Фото не найдено');
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: double.infinity,
+        height: 220,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            PageView.builder(
+              itemCount: imageUrls.length,
+              onPageChanged: (page) => setState(() => _photoPage = page),
+              itemBuilder: (context, index) {
+                final imageUrl = imageUrls[index];
+                return Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, error, __) {
+                    if (kDebugMode) {
+                      debugPrint('Inspection photo failed: $imageUrl error=$error');
+                    }
+                    return _photoPlaceholder('Не удалось загрузить фото');
+                  },
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return _photoPlaceholder('Загрузка фото...');
+                  },
+                );
+              },
+            ),
+            Positioned(
+              right: 12,
+              bottom: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Фото ${_photoPage + 1} из ${imageUrls.length}',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _photoPlaceholder(String label) {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.camera_alt, color: _gray400, size: 40),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 11, color: _gray400)),
+        ],
       ),
     );
   }

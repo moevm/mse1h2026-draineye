@@ -205,7 +205,7 @@ class LocalDamageModelDataSource {
     }
     return ModelInferenceResult(
       material: null,
-      state: hasDamage ? finalDamageScore.round().clamp(1, 5) : 1,
+      state: _conditionFromDamageScore(hasDamage ? finalDamageScore : 1),
       damageType: damageType,
       damageDegree: hasDamage ? finalDamageScore : 1.0,
       accuracyModel: accuracy,
@@ -220,6 +220,11 @@ class LocalDamageModelDataSource {
   }
 
   double _round2(double value) => double.parse(value.toStringAsFixed(2));
+
+  int _conditionFromDamageScore(double damageScore) {
+    final clamped = damageScore.round().clamp(1, 5);
+    return 6 - clamped;
+  }
 }
 
 class _SingleImageDetectionResult {

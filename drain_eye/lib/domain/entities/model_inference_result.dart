@@ -17,6 +17,26 @@ class ModelInferenceResult {
     this.comments,
     this.detections = const [],
   });
+
+  ModelInferenceResult copyWith({
+    String? material,
+    int? state,
+    String? damageType,
+    double? damageDegree,
+    double? accuracyModel,
+    String? comments,
+    List<ModelDetection>? detections,
+  }) {
+    return ModelInferenceResult(
+      material: material ?? this.material,
+      state: state ?? this.state,
+      damageType: damageType ?? this.damageType,
+      damageDegree: damageDegree ?? this.damageDegree,
+      accuracyModel: accuracyModel ?? this.accuracyModel,
+      comments: comments ?? this.comments,
+      detections: detections ?? this.detections,
+    );
+  }
 }
 
 class ModelDetection {

@@ -5,6 +5,7 @@ import 'package:drain_eye/core/constants.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
+import 'package:drain_eye/presentation/screens/user/low_confidence_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,6 +37,41 @@ class ModelResultScreen extends StatelessWidget {
   }
 
   String _orQuestion(String? v) => v ?? '?';
+
+  bool _isLowConfidence(ModelInferenceResult? result) {
+    if (result == null) return false;
+    final percent = (result.accuracyModel * 100).round();
+    return confidenceAccentColorFromPercent(percent) == kConfidenceRed;
+  }
+
+  Future<void> _handleSave(BuildContext context, ModelInferenceResult mr) async {
+    var resultToSubmit = mr;
+    if (_isLowConfidence(mr)) {
+      final decision = await Navigator.push<LowConfidenceDecision>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LowConfidenceScreen(result: mr),
+        ),
+      );
+      if (!context.mounted || decision == null) return;
+
+      switch (decision.action) {
+        case LowConfidenceAction.retakePhoto:
+          Navigator.pop(context, false);
+          return;
+        case LowConfidenceAction.manualReview:
+          resultToSubmit = decision.correctedResult ?? mr;
+      }
+    }
+
+    context.read<NewInspectionBloc>().add(
+          SubmitNewInspection(
+            userId: userId,
+            photoPaths: _effectivePaths,
+            modelResult: resultToSubmit,
+          ),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,13 +165,7 @@ class ModelResultScreen extends StatelessWidget {
                                 Navigator.pop(context, false);
                                 return;
                               }
-                              context.read<NewInspectionBloc>().add(
-                                    SubmitNewInspection(
-                                      userId: userId,
-                                      photoPaths: _effectivePaths,
-                                      modelResult: mr,
-                                    ),
-                                  );
+                              _handleSave(context, mr);
                             },
                       child: submitting
                           ? const SizedBox(
