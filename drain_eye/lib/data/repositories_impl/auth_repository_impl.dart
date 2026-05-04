@@ -25,7 +25,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void>? _googleSignInInitialized;
 
   // базовый URL бэкенда (можно позже заменить на реальный)
-  final String baseUrl = 'https://9pnoz7-95-161-60-178.ru.tuna.am';
+  final String baseUrl = 'https://3yxoyp-95-161-60-178.ru.tuna.am';
 
   static const _userPrefsKey = 'user';
   static const _authTokenPrefsKey = 'auth_token';
@@ -43,7 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
       throw Exception('введите имя');
     }
 
-    final uri = Uri.parse('$baseUrl/inspector/register/inspector');
+    final uri = Uri.parse('$baseUrl/inspector/register');
     if (kDebugMode) {
       print('Register backend request: $uri email=$normalizedEmail');
     }

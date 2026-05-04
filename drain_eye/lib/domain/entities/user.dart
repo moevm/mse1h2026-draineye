@@ -5,6 +5,9 @@ class User {
   final String name;
   final String? avatarUrl;
   final String role; // 'inspector' или 'admin'
+  final int? countInspections;
+  final DateTime? lastActivity;
+  final DateTime? createdAt;
 
   const User({
     required this.id,
@@ -12,6 +15,9 @@ class User {
     required this.name,
     this.avatarUrl,
     required this.role,
+    this.countInspections,
+    this.lastActivity,
+    this.createdAt,
   });
 
   // создание пользователя из JSON (например, ответа сервера)
@@ -22,6 +28,9 @@ class User {
       name: (json['full_name'] ?? json['name']) as String,
       avatarUrl: json['avatarUrl'] as String?,
       role: json['role'] as String,
+      countInspections: _parseInt(json['count'] ?? json['count_inspections']),
+      lastActivity: _parseDate(json['last_activity']),
+      createdAt: _parseDate(json['created_at']),
     );
   }
 
@@ -33,6 +42,9 @@ class User {
       'name': name,
       'avatarUrl': avatarUrl,
       'role': role,
+      'count': countInspections,
+      'last_activity': lastActivity?.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 
@@ -41,4 +53,17 @@ class User {
 
   // удобный метод для проверки, является ли пользователь админом
   bool get isAdmin => role == 'admin';
+
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return DateTime.tryParse(value.toString());
+  }
 }
