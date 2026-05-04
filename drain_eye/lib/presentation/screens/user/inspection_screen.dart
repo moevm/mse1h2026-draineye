@@ -23,7 +23,7 @@ class InspectionScreen extends StatelessWidget {
 
   String _damageDegreeUi(Inspection i) {
     if (i.damageDegree == null) return '?';
-    return i.damageDegree!.toString();
+    return i.damageDegree!.toStringAsFixed(2);
   }
 
   @override

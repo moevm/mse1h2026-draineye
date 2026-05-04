@@ -94,7 +94,7 @@ class ModelResultScreen extends StatelessWidget {
                     _row('Материал', _orQuestion(mr?.material)),
                     _row('Состояние', _orQuestion(mr?.state?.toString())),
                     _row('Тип повреждения', mr != null ? damageTypeLabelRu(mr.damageType) : '?'),
-                    _row('Степень повреждения', _orQuestion(mr?.damageDegree?.toString())),
+                    _row('Степень повреждения', mr?.damageDegree != null ? mr!.damageDegree!.toStringAsFixed(2) : '?'),
                     _row(
                       'Уверенность модели',
                       mr != null ? '${(mr.accuracyModel * 100).toStringAsFixed(1)}%' : '?',
