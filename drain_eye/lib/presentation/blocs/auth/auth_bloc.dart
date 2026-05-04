@@ -27,6 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _authRepository = authRepository,
         super(AuthInitial()) {
     on<LoginEvent>(_onLogin);
+    on<GoogleLoginEvent>(_onGoogleLogin);
     on<RegisterEvent>(_onRegister);
     on<LogoutEvent>(_onLogout);
     on<CheckAuthEvent>(_onCheckAuth);
@@ -47,6 +48,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e, st) {
       if (kDebugMode) {
         print('Login error: $e\n$st');
+      }
+      emit(AuthError(_authErrorMessage(e)));
+    }
+  }
+
+  Future<void> _onGoogleLogin(
+    GoogleLoginEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.loginWithGoogle();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(AuthError('не удалось выполнить вход через Google'));
+      }
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('Google login error: $e\n$st');
       }
       emit(AuthError(_authErrorMessage(e)));
     }

@@ -13,6 +13,9 @@ abstract class AuthRepository {
   // вход с email и паролем, возвращает пользователя (или null при ошибке)
   Future<User?> login(String email, String password);
 
+  // вход через Google, возвращает пользователя после проверки backend
+  Future<User?> loginWithGoogle();
+
   // выход (очистка токена)
   Future<void> logout();
 

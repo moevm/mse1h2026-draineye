@@ -45,8 +45,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'введите пароль';
     }
-    if (value.length < 6) {
-      return 'пароль должен содержать не менее 6 символов';
+    if (value.length < 8) {
+      return 'пароль должен содержать не менее 8 символов';
     }
     // проверка на наличие строчной буквы
     if (!RegExp(r'[a-z]').hasMatch(value)) {
@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Пароль должен содержать не менее 6 символов, включая строчную и заглавную буквы',
+                    'Пароль должен содержать не менее 8 символов, включая строчную и заглавную буквы',
                     style: const TextStyle(fontSize: 12, color: gray500),
                   ),
                   const SizedBox(height: 6),
@@ -215,21 +215,28 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 16),
 
             // кнопка Google
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: gray500,
-                  side: const BorderSide(color: borderColor),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                onPressed: () {
-                  // TODO: Google OAuth
-                },
-                icon: const Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF4285F4))),
-                label: const Text('Войти через Google', style: TextStyle(fontSize: 14)),
-              ),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                final isLoading = state is AuthLoading;
+                return SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: gray500,
+                      side: const BorderSide(color: borderColor),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            context.read<AuthBloc>().add(GoogleLoginEvent());
+                          },
+                    icon: const Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF4285F4))),
+                    label: Text(isLoading ? 'Вход...' : 'Войти через Google', style: const TextStyle(fontSize: 14)),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 20),
 

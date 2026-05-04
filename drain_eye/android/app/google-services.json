@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "116254805473-7821eivrsqpqchd9ad1aodu1jqi09sha.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.drain_eye",
+            "certificate_hash": "cee7c048ba96ec94f4e51abcbbfaf9fc68f0fbc3"
+          }
+        },
+        {
           "client_id": "116254805473-v7qalq84jr0p39j610jhmf4bbh44441d.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "116254805473-v7qalq84jr0p39j610jhmf4bbh44441d.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "116254805473-0h7gitvpdtqv4qfd3qrb1oeh122ujccu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.drainEye"
+              }
             }
           ]
         }

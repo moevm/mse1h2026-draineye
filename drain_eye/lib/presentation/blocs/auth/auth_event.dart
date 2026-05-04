@@ -12,6 +12,9 @@ class LoginEvent extends AuthEvent {
   LoginEvent({required this.email, required this.password});
 }
 
+// событие входа через Google
+class GoogleLoginEvent extends AuthEvent {}
+
 // событие регистрации инспектора
 class RegisterEvent extends AuthEvent {
   final String fullName;

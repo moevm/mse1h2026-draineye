@@ -26,7 +26,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   final SharedPreferences? _prefs;
 
   // ссылка будет меняться
-  final String baseUrl = 'http://wn79je-95-161-60-178.ru.tuna.am';
+  final String baseUrl = 'https://9pnoz7-95-161-60-178.ru.tuna.am';
   static const _authTokenPrefsKey = 'auth_token';
 
   @override

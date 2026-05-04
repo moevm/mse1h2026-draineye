@@ -5,6 +5,7 @@ import 'package:drain_eye/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,9 +22,10 @@ class AuthRepositoryImpl implements AuthRepository {
   final http.Client _httpClient;
   final SharedPreferences? _prefs;
   final firebase_auth.FirebaseAuth? _firebaseAuth;
+  Future<void>? _googleSignInInitialized;
 
   // базовый URL бэкенда (можно позже заменить на реальный)
-  final String baseUrl = 'http://wn79je-95-161-60-178.ru.tuna.am';
+  final String baseUrl = 'https://9pnoz7-95-161-60-178.ru.tuna.am';
 
   static const _userPrefsKey = 'user';
   static const _authTokenPrefsKey = 'auth_token';
@@ -135,23 +137,49 @@ class AuthRepositoryImpl implements AuthRepository {
     if (token == null || token.isEmpty) {
       throw Exception('не удалось получить токен Firebase');
     }
-    final response = await _httpClient.post(
-      Uri.parse('$baseUrl/inspector/login/inspector'),
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    return _loginBackendWithFirebaseToken(token, signOutOnBackendError: true);
+  }
 
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      await auth.signOut();
-      throw Exception(_extractErrorMessage(response));
+  @override
+  Future<User?> loginWithGoogle() async {
+    final auth = _requireFirebaseAuth();
+    try {
+      _googleSignInInitialized ??= GoogleSignIn.instance.initialize();
+      await _googleSignInInitialized;
+
+      if (!GoogleSignIn.instance.supportsAuthenticate()) {
+        throw Exception('Google вход не поддерживается на этой платформе');
+      }
+
+      final googleAccount = await GoogleSignIn.instance.authenticate();
+      final googleAuth = googleAccount.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('не удалось получить Google ID token');
+      }
+
+      final credential = firebase_auth.GoogleAuthProvider.credential(
+        idToken: idToken,
+      );
+      final userCredential = await auth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
+      if (firebaseUser == null) {
+        throw Exception('не удалось получить пользователя Firebase');
+      }
+
+      final token = await firebaseUser.getIdToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('не удалось получить токен Firebase');
+      }
+      return _loginBackendWithFirebaseToken(token, signOutOnBackendError: true);
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('вход через Google отменен');
+      }
+      throw Exception(e.description ?? 'ошибка входа через Google');
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      throw Exception(_firebaseAuthMessage(e));
     }
-
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    final user = User.fromJson(decoded);
-    await _saveAuthData(user: user, token: token);
-    return user;
   }
 
   @override
@@ -161,6 +189,13 @@ class AuthRepositoryImpl implements AuthRepository {
     await prefs.remove(_authTokenPrefsKey);
     if (Firebase.apps.isNotEmpty) {
       await _requireFirebaseAuth().signOut();
+    }
+    try {
+      _googleSignInInitialized ??= GoogleSignIn.instance.initialize();
+      await _googleSignInInitialized;
+      await GoogleSignIn.instance.signOut();
+    } catch (_) {
+      // Google Sign-In мог не использоваться в текущей сессии.
     }
   }
 
@@ -208,8 +243,8 @@ class AuthRepositoryImpl implements AuthRepository {
     if (!_isValidEmail(email)) {
       throw Exception('неверный формат email');
     }
-    if (password.length < 6) {
-      throw Exception('пароль должен содержать не менее 6 символов');
+    if (password.length < 8) {
+      throw Exception('пароль должен содержать не менее 8 символов');
     }
     if (!RegExp(r'[a-z]').hasMatch(password)) {
       throw Exception('пароль должен содержать хотя бы одну строчную букву');
@@ -259,6 +294,31 @@ class AuthRepositoryImpl implements AuthRepository {
       default:
         return error.message ?? 'ошибка Firebase: ${error.code}';
     }
+  }
+
+  Future<User?> _loginBackendWithFirebaseToken(
+    String token, {
+    required bool signOutOnBackendError,
+  }) async {
+    final response = await _httpClient.post(
+      Uri.parse('$baseUrl/inspector/login/inspector'),
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (signOutOnBackendError) {
+        await _requireFirebaseAuth().signOut();
+      }
+      throw Exception(_extractErrorMessage(response));
+    }
+
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final user = User.fromJson(decoded);
+    await _saveAuthData(user: user, token: token);
+    return user;
   }
 
   Future<void> _saveAuthData({

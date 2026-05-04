@@ -49,8 +49,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (value == null || value.isEmpty) {
       return 'введите пароль';
     }
-    if (value.length < 6) {
-      return 'пароль должен содержать не менее 6 символов';
+    if (value.length < 8) {
+      return 'пароль должен содержать не менее 8 символов';
     }
     if (!RegExp(r'[a-z]').hasMatch(value)) {
       return 'пароль должен содержать хотя бы одну строчную букву';
@@ -143,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
 
                   // поле Пароль
-                  const AuthLabel(label: 'Пароль', hint: '(мин. 6 символов)'),
+                  const AuthLabel(label: 'Пароль', hint: '(мин. 8 символов)'),
                   const SizedBox(height: 4),
                   _formField(
                     controller: _passwordController,
