@@ -1,18 +1,27 @@
+import 'package:drain_eye/domain/entities/user.dart';
+import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 const _teal = Color(0xFF0D9488);
 const _tealDark = Color(0xFF0F766E);
-const _gray400 = Color(0xFF94A3B8);
 const _gray500 = Color(0xFF64748B);
 const _green = Color(0xFF22C55E);
 
-/// Экран профиля инспектора — мокап по UC-4 (адаптирован для мобильного).
+/// Экран профиля инспектора.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      return const Center(child: Text('Пользователь не найден'));
+    }
+    final user = authState.user;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -38,14 +47,14 @@ class ProfileScreen extends StatelessWidget {
                     color: _teal.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  child: const Center(
-                    child: Text('АИ', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _tealDark)),
+                  child: Center(
+                    child: Text(_initials(user), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _tealDark)),
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('Иванов Алексей', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                Text(user.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
                 const SizedBox(height: 4),
-                const Text('ivanov@mail.com', style: TextStyle(fontSize: 13, color: _gray500)),
+                Text(user.email, style: const TextStyle(fontSize: 13, color: _gray500)),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -76,10 +85,10 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const Text('Информация', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
                 const SizedBox(height: 12),
-                _infoRow('Роль', 'Инспектор'),
-                _infoRow('Дата регистрации', '15.01.2026'),
-                _infoRow('Всего инспекций', '124'),
-                _infoRow('Последняя активность', '23.02.2026'),
+                _infoRow('Роль', _roleLabel(user.role)),
+                _infoRow('Дата регистрации', _formatDate(user.createdAt)),
+                _infoRow('Всего инспекций', (user.countInspections ?? 0).toString()),
+                _infoRow('Последняя активность', _formatDate(user.lastActivity)),
               ],
             ),
           ),
@@ -96,6 +105,7 @@ class ProfileScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
+                context.read<AuthBloc>().add(LogoutEvent());
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -121,5 +131,29 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  static String _initials(User user) {
+    final parts = user.name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
+    if (parts.isEmpty) return user.email.substring(0, 1).toUpperCase();
+    final first = parts.first.substring(0, 1);
+    final second = parts.length > 1 ? parts[1].substring(0, 1) : '';
+    return '$first$second'.toUpperCase();
+  }
+
+  static String _roleLabel(String role) {
+    switch (role) {
+      case 'inspector':
+        return 'Инспектор';
+      case 'admin':
+        return 'Администратор';
+      default:
+        return role;
+    }
+  }
+
+  static String _formatDate(DateTime? date) {
+    if (date == null) return '—';
+    return DateFormat('dd.MM.yyyy, HH:mm').format(date.toLocal());
   }
 }

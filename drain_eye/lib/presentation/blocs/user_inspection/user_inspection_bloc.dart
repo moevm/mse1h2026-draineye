@@ -43,7 +43,7 @@ class UserInspectionBloc extends Bloc<UserInspectionEvent, UserInspectionState> 
     await _subscription?.cancel();
 
     // подписка на поток инспекций из use case
-    _subscription = _getUserInspections(event.userId).listen(
+    _subscription = _getUserInspections().listen(
       (inspections) {
         // при приходе новых данных добавляется внутреннее событие
         add(_InspectionsUpdated(inspections));

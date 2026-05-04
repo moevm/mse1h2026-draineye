@@ -7,7 +7,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   InspectionRepositoryImpl();
 
   @override
-  Stream<List<Inspection>> getUserInspections(int userId) {
+  Stream<List<Inspection>> getUserInspections() {
     return Stream.value([]);
   }
 

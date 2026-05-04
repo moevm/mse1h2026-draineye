@@ -84,8 +84,8 @@ class InspectionModel {
     );
   }
 
-  Inspection toDomain({required int userId, required int index}) {
-    final uid = int.tryParse(engineerId) ?? userId;
+  Inspection toDomain({required int index}) {
+    final uid = int.tryParse(engineerId) ?? 0;
     final defects = <String>[];
     if (modelVerdict.damageType.isNotEmpty) {
       defects.add(modelVerdict.damageType);

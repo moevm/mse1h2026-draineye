@@ -4,7 +4,7 @@ import 'package:drain_eye/domain/entities/model_inference_result.dart';
 // абстрактный класс репозитория для работы с инспекциями
 // определяет контракт, который должны реализовать конкретные источники данных
 abstract class InspectionRepository {
-  Stream<List<Inspection>> getUserInspections(int userId);
+  Stream<List<Inspection>> getUserInspections();
 
   // локальный tflite: усреднение вероятностей по списку путей к фото
   Future<ModelInferenceResult> runDamageModel(List<String> photoPaths);

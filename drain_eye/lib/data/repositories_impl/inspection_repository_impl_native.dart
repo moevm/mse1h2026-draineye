@@ -9,35 +9,45 @@ import 'package:drain_eye/domain/repositories/inspection_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+// реализация репозитория: GET инспекций с сервера, tflite, POST новой инспекции
 class InspectionRepositoryImpl implements InspectionRepository {
   InspectionRepositoryImpl({
     http.Client? httpClient,
     LocalDamageModelDataSource? damageModelDataSource,
+    SharedPreferences? prefs,
   })  : _httpClient = httpClient ?? http.Client(),
-        _damageModel = damageModelDataSource ?? LocalDamageModelDataSource();
+        _damageModel = damageModelDataSource ?? LocalDamageModelDataSource(),
+        _prefs = prefs;
 
   final http.Client _httpClient;
   final LocalDamageModelDataSource _damageModel;
+  final SharedPreferences? _prefs;
 
-  final String baseUrl = 'https://5ou3ck-95-161-61-238.ru.tuna.am';
+  // ссылка будет меняться
+  final String baseUrl = 'https://3yxoyp-95-161-60-178.ru.tuna.am';
+  static const _authTokenPrefsKey = 'auth_token';
 
   @override
-  Stream<List<Inspection>> getUserInspections(int userId) {
-    return Stream.fromFuture(_fetchInspectionsForUser(userId));
+  Stream<List<Inspection>> getUserInspections() {
+    return Stream.fromFuture(_fetchMyInspections());
   }
 
-  Future<List<Inspection>> _fetchInspectionsForUser(int userId) async {
-    final uri = Uri.parse(
-      '$baseUrl/inspections_by_user/${Uri.encodeComponent(userId.toString())}',
-    );
+  /// GET `/inspector/my_inspections` — список инспекций текущего инженера.
+  Future<List<Inspection>> _fetchMyInspections() async {
+    final token = await _authToken();
+    final uri = Uri.parse('$baseUrl/inspector/my_inspections');
     final response = await _httpClient.get(
       uri,
-      headers: {'Accept': 'application/json'},
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
     );
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
-        'get_inspections: ${response.statusCode} ${response.body}',
+        'my_inspections: ${response.statusCode} ${response.body}',
       );
     }
     final decoded = jsonDecode(response.body);
@@ -51,10 +61,10 @@ class InspectionRepositoryImpl implements InspectionRepository {
         throw FormatException('Элемент списка инспекций не объект');
       }
       final dto = InspectionModel.fromJson(Map<String, dynamic>.from(raw));
-      out.add(dto.toDomain(userId: userId, index: i));
+      out.add(dto.toDomain(index: i));
     }
     if (kDebugMode) {
-      print('>>> getUserInspections($userId): ${out.length} записей');
+      print('>>> my_inspections: ${out.length} записей');
     }
     return out;
   }
@@ -70,8 +80,11 @@ class InspectionRepositoryImpl implements InspectionRepository {
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) async {
-    final uri = Uri.parse('$baseUrl/add_inspection');
+    final token = await _authToken();
+    final uri = Uri.parse('$baseUrl/inspector/add_inspection');
 
+    // FastAPI: inspection_json: str = Form(...), files: List[UploadFile] = File(None)
+    // ModelVerdictSchema — все поля обязательны; null из приложения заменяем заглушками.
     final inspectionPayload = <String, dynamic>{
       'engineer_id': userId.toString(),
       'timestamp': DateTime.now().toIso8601String(),
@@ -90,6 +103,8 @@ class InspectionRepositoryImpl implements InspectionRepository {
     };
 
     final request = http.MultipartRequest('POST', uri)
+      ..headers['Accept'] = 'application/json'
+      ..headers['Authorization'] = 'Bearer $token'
       ..fields['inspection_json'] = jsonEncode(inspectionPayload);
 
     for (final p in photoPaths) {
@@ -121,5 +136,14 @@ class InspectionRepositoryImpl implements InspectionRepository {
     final j = path.lastIndexOf(r'\');
     final k = i > j ? i : j;
     return k < 0 ? path : path.substring(k + 1);
+  }
+
+  Future<String> _authToken() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    final token = prefs.getString(_authTokenPrefsKey);
+    if (token == null || token.isEmpty) {
+      throw StateError('токен авторизации не найден');
+    }
+    return token;
   }
 }
