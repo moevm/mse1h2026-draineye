@@ -2,6 +2,7 @@ import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/screens/auth/auth_widgets.dart';
 import 'package:drain_eye/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:drain_eye/presentation/screens/auth/register_screen.dart';
+import 'package:drain_eye/presentation/screens/admin/admin_main_screen.dart';
 import 'package:drain_eye/presentation/screens/user/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -261,6 +262,28 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _inputField({
+    required TextEditingController controller,
+    required String placeholder,
+    bool obscure = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      style: const TextStyle(fontSize: 14),
+      decoration: InputDecoration(
+        hintText: placeholder,
+        hintStyle: const TextStyle(color: gray400, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: borderColor)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: borderColor)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: teal, width: 1.5)),
       ),
     );
   }
