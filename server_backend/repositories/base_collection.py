@@ -1,6 +1,6 @@
 from google.cloud import firestore
 from google.cloud.firestore_v1 import FieldFilter
-from app.imports import Optional, Any, List
+from server_backend.imports import Optional, Any, List
 '''
 базовый класс для работы с коллекциями Firestore,
 реализующий общие CRUD операции для всех моделей данных
@@ -31,7 +31,7 @@ class BaseCollection:
         docs = query.stream()
         return [self.model_cls.from_dict(doc) for doc in docs]
 
-    '''проерка наличия элемента в хранилище'''
+    '''проверка наличия элемента в хранилище'''
     def exists(self, doc_id: str) -> bool:
         doc = self.collection.document(doc_id).get()
         return doc.exists
@@ -42,3 +42,20 @@ class BaseCollection:
         doc.set(data)
         return doc.id
 
+    '''удаление элемента из хранилища по id'''
+    def delete_by_id(self, doc_id: str) -> bool:
+        doc_ref = self.collection.document(doc_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            doc_ref.delete()
+            return True
+        return False
+
+    '''удаление всех записей в коллекции'''
+    def delete_all_test(self) -> int:
+        docs = self.collection.stream()
+        count = 0
+        for doc in docs:
+            doc.reference.delete()
+            count += 1
+        return count

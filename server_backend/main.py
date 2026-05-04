@@ -1,6 +1,6 @@
-from app.imports import uvicorn
-from app.config import settings
-from app.services import StorageService
+from imports import uvicorn
+from config import settings
+from server_backend.services.storage_service import StorageService
 
 '''
 запуск сервера и всей программы

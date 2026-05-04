@@ -1,4 +1,4 @@
-from app.imports import os, load_dotenv, Path
+from server_backend.imports import os, load_dotenv, Path
 
 '''загружаем переменные из .env файла'''
 env_path = Path(__file__).parent.parent / '.env'

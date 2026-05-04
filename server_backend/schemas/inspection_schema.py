@@ -1,4 +1,4 @@
-from app.imports import datetime, List, BaseModel
+from server_backend.imports import datetime, List, BaseModel
 
 class ModelVerdictSchema(BaseModel):
     material: str

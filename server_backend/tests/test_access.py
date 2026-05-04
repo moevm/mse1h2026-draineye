@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-from app.config import settings
+from server_backend.config import settings
 
 
 def _create_client():

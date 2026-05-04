@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from app.imports import datetime, List, Optional
-from app.schemas import InspectionSchema, ModelVerdictSchema
+from server_backend.imports import datetime, List, Optional
+from server_backend.schemas import InspectionSchema, ModelVerdictSchema
 
 '''
 класс для хранения вердикта, вынесенного ML моделью
