@@ -20,6 +20,7 @@ class LocalDamageModelDataSource {
   ];
 
   Interpreter? _interpreter;
+  IsolateInterpreter? _isolateInterpreter;
 
   static String _basename(String path) {
     final i = path.lastIndexOf('/');
@@ -36,34 +37,20 @@ class LocalDamageModelDataSource {
     return _interpreter!;
   }
 
-  Future<_SingleImageDetectionResult> _runSingle(String path) async {
+  Future<IsolateInterpreter> _getIsolateInterpreter() async {
+    if (_isolateInterpreter != null) return _isolateInterpreter!;
     final interpreter = await _getInterpreter();
-    final bytes = await File(path).readAsBytes();
-    final image = img.decodeImage(bytes);
-    if (image == null) {
-      throw FormatException('не удалось декодировать изображение: $path');
-    }
-    final resized = img.copyResize(
-      image,
-      width: _inputSize,
-      height: _inputSize,
-      interpolation: img.Interpolation.linear,
-    );
-    final inputTensor = interpreter.getInputTensor(0);
-    final inputBuffer = Uint8List(_inputSize * _inputSize * 3);
-    var idx = 0;
-    for (var y = 0; y < _inputSize; y++) {
-      for (var x = 0; x < _inputSize; x++) {
-        final p = resized.getPixel(x, y);
-        inputBuffer[idx++] = p.r.toInt().clamp(0, 255);
-        inputBuffer[idx++] = p.g.toInt().clamp(0, 255);
-        inputBuffer[idx++] = p.b.toInt().clamp(0, 255);
-      }
-    }
-    inputTensor.data = inputBuffer;
-    interpreter.invoke();
-    final outTensor = interpreter.getOutputTensor(0);
-    final outBytes = outTensor.data;
+    _isolateInterpreter =
+        await IsolateInterpreter.create(address: interpreter.address);
+    return _isolateInterpreter!;
+  }
+
+  Future<_SingleImageDetectionResult> _runSingle(String path) async {
+    final isolateInterpreter = await _getIsolateInterpreter();
+    final prepared = await compute(_prepareModelInput, path);
+    final inputBuffer = prepared.input;
+    final outBytes = Uint8List(_outputDetections * _outputValues * 4);
+    await isolateInterpreter.run(inputBuffer.buffer, outBytes.buffer);
     final outFloat = Float32List.view(
       outBytes.buffer,
       outBytes.offsetInBytes,
@@ -80,7 +67,7 @@ class LocalDamageModelDataSource {
     final damageAreas = _damageAreasByClass(detections);
     if (kDebugMode) {
       debugPrint(
-        '[DamageModel] ${_basename(path)} (${image.width}×${image.height} -> ${_inputSize}×$_inputSize): '
+        '[DamageModel] ${_basename(path)} (${prepared.width}×${prepared.height} -> ${_inputSize}×$_inputSize): '
         'detections=${detections.length}, '
         'corrosion=${scores[0].toStringAsFixed(4)}, '
         'crack=${scores[1].toStringAsFixed(4)}, '
@@ -215,7 +202,9 @@ class LocalDamageModelDataSource {
   }
 
   void dispose() {
+    _isolateInterpreter?.close();
     _interpreter?.close();
+    _isolateInterpreter = null;
     _interpreter = null;
   }
 
@@ -225,6 +214,51 @@ class LocalDamageModelDataSource {
     final clamped = damageScore.round().clamp(1, 5);
     return 6 - clamped;
   }
+}
+
+_PreparedModelInput _prepareModelInput(String path) {
+  final bytes = File(path).readAsBytesSync();
+  final image = img.decodeImage(bytes);
+  if (image == null) {
+    throw FormatException('не удалось декодировать изображение: $path');
+  }
+  final resized = img.copyResize(
+    image,
+    width: LocalDamageModelDataSource._inputSize,
+    height: LocalDamageModelDataSource._inputSize,
+    interpolation: img.Interpolation.linear,
+  );
+  final inputBuffer = Uint8List(
+    LocalDamageModelDataSource._inputSize *
+        LocalDamageModelDataSource._inputSize *
+        3,
+  );
+  var idx = 0;
+  for (var y = 0; y < LocalDamageModelDataSource._inputSize; y++) {
+    for (var x = 0; x < LocalDamageModelDataSource._inputSize; x++) {
+      final p = resized.getPixel(x, y);
+      inputBuffer[idx++] = p.r.toInt().clamp(0, 255);
+      inputBuffer[idx++] = p.g.toInt().clamp(0, 255);
+      inputBuffer[idx++] = p.b.toInt().clamp(0, 255);
+    }
+  }
+  return _PreparedModelInput(
+    input: inputBuffer,
+    width: image.width,
+    height: image.height,
+  );
+}
+
+class _PreparedModelInput {
+  final Uint8List input;
+  final int width;
+  final int height;
+
+  const _PreparedModelInput({
+    required this.input,
+    required this.width,
+    required this.height,
+  });
 }
 
 class _SingleImageDetectionResult {

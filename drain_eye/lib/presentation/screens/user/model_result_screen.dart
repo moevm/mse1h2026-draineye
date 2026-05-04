@@ -50,7 +50,10 @@ class ModelResultScreen extends StatelessWidget {
       final decision = await Navigator.push<LowConfidenceDecision>(
         context,
         MaterialPageRoute(
-          builder: (_) => LowConfidenceScreen(result: mr),
+          builder: (_) => LowConfidenceScreen(
+            result: mr,
+            photoPaths: _effectivePaths,
+          ),
         ),
       );
       if (!context.mounted || decision == null) return;

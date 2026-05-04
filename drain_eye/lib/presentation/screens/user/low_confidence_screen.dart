@@ -1,5 +1,8 @@
+import 'dart:io' if (dart.library.html) 'package:drain_eye/stubs/dart_io_stub.dart';
+
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 const _teal = Color(0xFF0D9488);
@@ -25,10 +28,12 @@ class LowConfidenceDecision {
 /// Экран низкой уверенности модели (UC-9) — предупреждение + выбор действия.
 class LowConfidenceScreen extends StatefulWidget {
   final ModelInferenceResult result;
+  final List<String> photoPaths;
 
   const LowConfidenceScreen({
     super.key,
     required this.result,
+    this.photoPaths = const [],
   });
 
   @override
@@ -90,16 +95,7 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // фото
-            Container(
-              width: double.infinity,
-              height: 120,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.camera_alt, color: _gray400, size: 32),
-            ),
+            _LowConfidencePhotoCarousel(paths: widget.photoPaths),
             const SizedBox(height: 14),
 
             // карточка результата (оранжевая граница)
@@ -297,11 +293,14 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
 
   ModelInferenceResult _correctedResult() {
     final state = int.parse(_stateController.text.trim());
-    final damageDegree = double.parse(_damageDegreeController.text.trim());
+    final damageDegree = double.parse(
+      _damageDegreeController.text.trim().replaceAll(',', '.'),
+    );
     return widget.result.copyWith(
       state: state,
       damageType: _selectedDamageType,
       damageDegree: double.parse(damageDegree.toStringAsFixed(2)),
+      accuracyModel: 1.0,
       comments: 'Низкая уверенность модели: результат скорректирован вручную.',
     );
   }
@@ -399,4 +398,93 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
     }
     return null;
   }
+}
+
+class _LowConfidencePhotoCarousel extends StatefulWidget {
+  final List<String> paths;
+
+  const _LowConfidencePhotoCarousel({required this.paths});
+
+  @override
+  State<_LowConfidencePhotoCarousel> createState() =>
+      _LowConfidencePhotoCarouselState();
+}
+
+class _LowConfidencePhotoCarouselState
+    extends State<_LowConfidencePhotoCarousel> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final paths = widget.paths;
+    if (paths.isEmpty || kIsWeb) {
+      return _lowConfidencePhotoPlaceholder();
+    }
+
+    if (paths.length == 1) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          width: double.infinity,
+          height: 120,
+          child: Image.file(
+            File(paths.first),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _lowConfidencePhotoPlaceholder(),
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: double.infinity,
+        height: 120,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            PageView.builder(
+              itemCount: paths.length,
+              onPageChanged: (page) => setState(() => _page = page),
+              itemBuilder: (context, index) {
+                return Image.file(
+                  File(paths[index]),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _lowConfidencePhotoPlaceholder(),
+                );
+              },
+            ),
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Фото ${_page + 1} из ${paths.length}',
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _lowConfidencePhotoPlaceholder() {
+  return Container(
+    width: double.infinity,
+    height: 120,
+    decoration: BoxDecoration(
+      color: const Color(0xFFF1F5F9),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: const Icon(Icons.camera_alt, color: _gray400, size: 32),
+  );
 }
