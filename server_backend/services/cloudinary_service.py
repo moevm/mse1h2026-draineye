@@ -2,7 +2,7 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from server_backend.config import settings
-from server_backend.imports import List, os, io, UploadFile
+from server_backend.imports import List,  io, UploadFile
 
 '''
 cинглтон-сервис для управления подключением к Cloudinary и доступа к облаку
@@ -72,8 +72,7 @@ class CloudinaryService:
             )
             await file.seek(0)
         except Exception as e:
-            print(f"Ошибка загрузки {public_id}: {e}")
-            raise
+            raise e
 
     async def upload_avatar(self, file: UploadFile, user_id: str) -> str:
         try:

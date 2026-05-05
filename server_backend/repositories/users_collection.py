@@ -1,5 +1,5 @@
 from google.cloud import firestore
-from server_backend.imports import Optional, List
+from server_backend.imports import Optional, List, Tuple
 from server_backend.repositories.base_collection import BaseCollection
 from server_backend.models.user import User, UserRole
 
@@ -26,7 +26,7 @@ class UsersCollection(BaseCollection):
         users = self.get_by_field("full_name", full_name)
         return [user for user in users if user.role == role]
 
-    '''получение пользователя по UID из Firestore (переопределяем get_by_id для чистоты имени)'''
+    '''получение пользователя по UID из Firestore'''
     def get_by_uid(self, uid: str) -> Optional[User]:
         return self.get_by_id(uid)
 
@@ -61,3 +61,43 @@ class UsersCollection(BaseCollection):
     '''удаляет всех пользователей в коллекции'''
     def delete_all_users(self) -> int:
         return self.delete_all_test()
+
+    def get_active_inspectors_count(self) -> int:
+        query = self.collection.where("role", "==", UserRole.INSPECTOR.value) \
+            .where("is_active", "==", True)
+        snapshot = query.count().get()
+        return snapshot[0][0].value
+
+    def get_inspectors_paginated(
+        self,
+        role: UserRole = UserRole.INSPECTOR,
+        limit: int = 50,
+        next_cursor: Optional[List] = None,  # [last_activity_iso_str, user_id]
+        active_only: bool = True
+    ) -> Tuple[List[User], Optional[List]]:
+
+        query = self.collection
+        query = query.where("role", "==", role.value)
+        if active_only:
+            query = query.where("is_active", "==", True)
+
+        query = query.order_by("last_activity", direction=firestore.Query.DESCENDING)
+        query = query.order_by("__name__", direction=firestore.Query.DESCENDING)
+
+        if next_cursor:
+            query = query.start_after(next_cursor)
+
+        query = query.limit(limit + 1)
+        docs = list(query.stream())
+        has_more = len(docs) > limit
+        if has_more:
+            docs = docs[:limit]
+
+        users = [self.model_cls.from_dict(doc) for doc in docs]
+
+        next_c = None
+        if has_more and docs:
+            last_doc = docs[-1]
+            next_c = [last_doc.get("last_activity"), last_doc.id]
+
+        return users, next_c

@@ -1,6 +1,7 @@
 from server_backend.imports import Optional, Enum, datetime, timezone, Any
 from dataclasses import *
 
+'''роли пользователей'''
 class UserRole(str, Enum):
     INSPECTOR = "inspector"
     ADMIN = "admin"

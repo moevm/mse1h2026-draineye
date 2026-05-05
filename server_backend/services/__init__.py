@@ -1,3 +1,3 @@
 from .firebase_service import FirebaseService
 
-__version__ = '1.0.0'
+__version__ = '2.0.0'

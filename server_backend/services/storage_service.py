@@ -1,8 +1,9 @@
 from server_backend.services import FirebaseService
 from server_backend.services.cloudinary_service import CloudinaryService
-from server_backend.imports import Optional, List, UploadFile
+from server_backend.imports import Optional, List, UploadFile, Tuple
+from server_backend.models import Inspection, User
+from server_backend.models.user import UserRole
 from server_backend.schemas import InspectionSchema
-from server_backend.models import Inspection
 
 '''общий сервис для управлением хранилищами'''
 class StorageService:
@@ -19,6 +20,7 @@ class StorageService:
 
     '''получение инспекции по id инженера'''
     def get_inspections_by_engineer(self, engineer_id: str, limit: int = None):
+        self.log_activity(engineer_id)
         return self._firebase.get_inspections_by_engineer(engineer_id, limit)
 
     '''добавление инспекции'''
@@ -58,7 +60,7 @@ class StorageService:
                 self._firebase.inspections_collection.collection.document(inspection_id).update({
                     "photos": placeholder_urls
                 })
-
+        self.log_activity(inspection.engineer_id)
         return {
             "inspection_id": inspection_id,
             "photo_urls": photo_urls,
@@ -73,3 +75,35 @@ class StorageService:
 
     def log_activity(self, uid: str):
         return self._firebase.log_activity(uid)
+
+    def get_dashboard_metrics(self) -> dict:
+        try:
+            active_inspectors = self._firebase.get_active_inspectors_count()
+            total_inspections = self._firebase.get_inspections_count()
+            today_inspections = self._firebase.get_today_inspections_count()
+
+            return {
+                "active_inspectors": active_inspectors,
+                "total_inspections": total_inspections,
+                "inspections_today": today_inspections
+            }
+        except Exception as e:
+            raise e
+
+    def get_users_by_role_paginated(
+            self, role: UserRole, limit: int, next_cursor: Optional[List],active_only: bool
+    ) -> Tuple[List[User], Optional[List]]:
+        return self._firebase.get_users_by_role_paginated(
+            role=role,
+            limit=limit,
+            next_cursor=next_cursor,
+            active_only=active_only
+        )
+
+    def get_all_inspections_paginated_with_engineer(
+         self,limit: int, next_cursor: Optional[List],
+    ) -> Tuple[List[Tuple[Inspection, Optional[User]]], Optional[List]]:
+        return self._firebase.get_all_inspections_paginated_with_engineer(
+            limit=limit,
+            next_cursor=next_cursor,
+        )
