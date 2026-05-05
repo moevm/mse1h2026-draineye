@@ -10,7 +10,8 @@
 [Макет UI](https://moevm.github.io/mse1h2026-draineye/ui-mockups.html)
 ### Инструкция по запуску
 [Инструкция по запуску приложения](https://github.com/moevm/mse1h2026-draineye/blob/main/drain_eye/README.md)
-[Инструкция по запуску сервера]()
+[Инструкция по запуску сервера](https://github.com/moevm/mse1h2026-draineye/blob/main/server_backend/README.md)
+[Инструкция по запуску административной панели]()
 ## Итерация №1
 ### Презентация
 [Презентация](https://github.com/moevm/mse1h2026-draineye/blob/reports/docs/presentation1.pdf)
@@ -63,9 +64,9 @@
 
 ## Итерация №3
 ### Презентация
-[Презентация]()
+[Презентация](https://github.com/moevm/mse1h2026-draineye/blob/reports/docs/presentation3.pdf)
 ### Скринкасты
-[Скринкаст мобильного приложения на 3 итерации]()
+[Скринкаст мобильного приложения на 3 итерации](https://github.com/moevm/mse1h2026-draineye/blob/reports/docs/screencast3_mobile.MP4)
 [Скринкаст веб-приложения на 3 итерации]()
 ### Запланированные задачи
 - Реализация минимум половины от согласованных сценариев использования
