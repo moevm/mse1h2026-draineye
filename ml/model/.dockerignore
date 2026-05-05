@@ -1,0 +1,17 @@
+.env
+.env.template
+
+.git
+.gitignore
+.gitkeep
+
+__pycache__
+*.pyc
+*.pyo
+
+data/
+models/
+notebook/
+
+*.ipynb
+*.md
