@@ -23,3 +23,11 @@ services:
       - ./models:/models
     command: python src/export.py --weights /models/model_v1/weights/best.pt --output /models/model_v1.tflite
 
+  test:
+    image: draineye-ml
+    build: .
+    volumes:
+      - ./models:/models
+      - ./tests:/app/tests
+    command: pytest -q
+
