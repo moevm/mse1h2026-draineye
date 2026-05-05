@@ -13,3 +13,6 @@ onnx2tf==1.28.8
 onnxruntime==1.25.1
 onnxslim==0.1.92
 sng4onnx==2.0.1
+
+# Tests
+pytest==8.3.2
