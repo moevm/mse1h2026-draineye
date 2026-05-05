@@ -1,8 +1,9 @@
-from server_backend.imports import credentials, firestore, datetime, timezone, Optional, firebase_admin, auth
+from server_backend.imports import firebase_admin, auth
+from server_backend.imports import credentials, firestore, datetime, timezone, Optional, Tuple, List
 from server_backend.repositories import UsersCollection, InspectionsCollection
 from server_backend.models.user import User, UserRole
 from server_backend.config import settings
-from server_backend.models.inspection import Inspection
+from server_backend.models import Inspection
 
 '''
 cинглтон-сервис для управления подключением к Firebase и доступа к коллекциям
@@ -75,13 +76,17 @@ class FirebaseService:
         except Exception:
             return True
 
+    '''валидация пароля'''
     def validate_password(self, password: str):
-        if len(password) < 12:
-            raise ValueError("Минимум 12 символов")
+        if len(password) < 8:
+            raise ValueError("Минимум 8 символов")
         if not any(c.isdigit() for c in password):
             raise ValueError("Нужна хотя бы одна цифра")
         if not any(c.isupper() for c in password):
             raise ValueError("Пароль должен содержать заглавную букву")
+
+    def get_user_by_uid(self, uid: str) -> Optional[User]:
+        return self.users_collection.get_by_uid(uid)
 
     '''регистрирует инспектора'''
     def register_inspector(self, email: str, password: str, full_name: str) -> str:
@@ -116,4 +121,41 @@ class FirebaseService:
 
     '''метод для добавления инспеции'''
     def add_inspection(self, inspection: Inspection) -> str:
+        self.users_collection.increment_inspections(inspection.engineer_id)
         return self.inspections_collection.add_inspection(inspection)
+
+    def get_users_by_role_paginated(
+        self, role: UserRole, limit: int, next_cursor: Optional[List], active_only: bool
+    ) -> Tuple[List[User], Optional[List]]:
+        return self.users_collection.get_inspectors_paginated(
+            role=role,
+            limit=limit,
+            next_cursor=next_cursor,
+            active_only=active_only
+        )
+
+    def get_all_inspections_paginated_with_engineer(
+        self, limit: int, next_cursor: Optional[List]
+    ) -> Tuple[List[Tuple[Inspection, Optional[User]]], Optional[List]]:
+        inspections, raw_cursor = self.inspections_collection.get_all_inspections_paginated(
+            limit=limit,
+            next_cursor=next_cursor,
+        )
+
+        result_pairs = []
+        for insp in inspections:
+            engineer_user = None
+            if insp.engineer_id:
+                engineer_user = self.users_collection.get_by_uid(insp.engineer_id)
+            result_pairs.append((insp, engineer_user))
+
+        return result_pairs, raw_cursor
+
+    def get_active_inspectors_count(self):
+        return self.users_collection.get_active_inspectors_count()
+
+    def get_inspections_count(self):
+        return self.inspections_collection.get_inspections_count()
+
+    def get_today_inspections_count(self):
+        return self.inspections_collection.get_today_inspections_count()

@@ -38,7 +38,7 @@ class ModelVerdict:
 
     '''преобразование из схемы'''
     @classmethod
-    def from_schema(cls, schema):
+    def from_schema(cls, schema: ModelVerdictSchema):
         return cls(
             material=schema.material,
             state=schema.state,

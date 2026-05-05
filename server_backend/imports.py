@@ -1,4 +1,4 @@
-from  typing import List, Optional, Any, Dict
+from  typing import List, Optional, Any, Dict, Tuple
 from datetime import datetime
 from firebase_admin import firestore
 from firebase_admin import credentials
@@ -7,9 +7,11 @@ import firebase_admin
 import os, io
 from dotenv import load_dotenv
 from pathlib import Path
-from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, FastAPI, Depends, UploadFile, File, HTTPException, Form, status, Header
 from datetime import datetime
 from enum import Enum
 from datetime import timezone
 from firebase_admin import auth
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
+from google.cloud.firestore_v1 import FieldFilter
+import json
