@@ -11,7 +11,6 @@ def get_token_from_header(authorization: Optional[str] = Header(default=None)) -
         )
     return authorization.replace("Bearer ", "")
 
-
 '''проверяет токен и возвращает объект пользователя'''
 def get_current_user(
     token: str = Depends(get_token_from_header),

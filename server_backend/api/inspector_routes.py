@@ -47,7 +47,7 @@ async def create_inspection(
 
 
 '''endpoint для регистрации инспектора'''
-@router.post("/register/inspector", status_code=201)
+@router.post("/register", status_code=201)
 def register_inspector(
     request: RegisterRequest,
     ss: StorageService = Depends(create_storage_service)
@@ -65,7 +65,8 @@ def register_inspector(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
-@router.post("/login/inspector")
+'''endpoint для авторизации инспектора'''
+@router.post("/login")
 def login_inspector(
     user: User = Depends(require_inspector)
 ):
@@ -75,5 +76,8 @@ def login_inspector(
         "role": user.role.value,
         "full_name": user.full_name,
         "email": user.email,
+        "count": user.count_inspections,
+        "last_activity": user.last_activity,
+        "created_at": user.created_at,
         "message": "Вход выполнен успешно"
     }
