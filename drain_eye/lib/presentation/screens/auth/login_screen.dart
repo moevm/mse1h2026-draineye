@@ -73,10 +73,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          // успешный вход — переход на главный экран
+          final isAdmin = state.user.role == 'admin';
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const MainScreen()),
+            MaterialPageRoute(
+              builder: (_) => isAdmin ? const AdminMainScreen() : const MainScreen(),
+            ),
           );
         }
         if (state is AuthError) {
