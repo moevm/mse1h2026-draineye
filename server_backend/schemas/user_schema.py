@@ -10,6 +10,7 @@ class UserResponse(BaseModel):
     count_inspections: int = 0
     last_activity: Optional[datetime] = None
     created_at: Optional[datetime] = None
+
     class Config:
         from_attributes = True
 

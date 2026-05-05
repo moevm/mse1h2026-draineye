@@ -1,5 +1,5 @@
 from google.cloud import firestore
-from server_backend.imports import Optional, List, Tuple
+from server_backend.imports import Optional, List, FieldFilter, Tuple
 from server_backend.repositories.base_collection import BaseCollection
 from server_backend.models.user import User, UserRole
 
@@ -63,8 +63,9 @@ class UsersCollection(BaseCollection):
         return self.delete_all_test()
 
     def get_active_inspectors_count(self) -> int:
-        query = self.collection.where("role", "==", UserRole.INSPECTOR.value) \
-            .where("is_active", "==", True)
+        query = self.collection \
+            .where(filter=FieldFilter("role", "==", UserRole.INSPECTOR)) \
+            .where(filter=FieldFilter("is_active", "==", True))
         snapshot = query.count().get()
         return snapshot[0][0].value
 
@@ -77,9 +78,9 @@ class UsersCollection(BaseCollection):
     ) -> Tuple[List[User], Optional[List]]:
 
         query = self.collection
-        query = query.where("role", "==", role.value)
+        query = query.where(filter=FieldFilter("role", "==", role.value))
         if active_only:
-            query = query.where("is_active", "==", True)
+            query = query.where(filter=FieldFilter("is_active", "==", True))
 
         query = query.order_by("last_activity", direction=firestore.Query.DESCENDING)
         query = query.order_by("__name__", direction=firestore.Query.DESCENDING)

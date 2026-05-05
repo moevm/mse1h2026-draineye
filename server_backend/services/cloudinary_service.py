@@ -2,7 +2,8 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from server_backend.config import settings
-from server_backend.imports import List,  io, UploadFile
+from server_backend.imports import List, os, io
+from server_backend.imports import UploadFile
 
 '''
 cинглтон-сервис для управления подключением к Cloudinary и доступа к облаку

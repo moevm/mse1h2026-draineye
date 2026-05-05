@@ -34,7 +34,6 @@ def register_admin(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
-'''endpoint для авторизации администратора'''
 @router.post("/login")
 def login_admin(
     user: User = Depends(require_admin)
@@ -48,7 +47,6 @@ def login_admin(
         "message": "Вход выполнен успешно"
     }
 
-'''endpoint для получения метрик для главной страницы администратора'''
 @router.get("/metrics/dashboard")
 def get_dashboard_metrics(
     ss: StorageService = Depends(create_storage_service),
@@ -63,7 +61,6 @@ def get_dashboard_metrics(
             detail="Внутренняя ошибка сервера при получении метрик"
         )
 
-'''endpoint для получения пользователей'''
 @router.get("/users/by-role", response_model=PaginatedUsersResponse)
 def get_users_by_role(
     ss: StorageService = Depends(create_storage_service),
@@ -89,14 +86,12 @@ def get_users_by_role(
         total_returned=len(response_users)
     )
 
-'''endpoint для получения инспекций'''
 @router.get("/inspections", response_model=PaginatedInspectionsResponse)
 def get_all_inspections(
     ss: StorageService = Depends(create_storage_service),
     user: User = Depends(require_admin),
     params: InspectionListQueryParams = Depends(),
 ):
-
     parsed_cursor = json.loads(params.next_cursor) if params.next_cursor else None
 
     pairs, raw_next_cursor = ss.get_all_inspections_paginated_with_engineer(
@@ -114,17 +109,20 @@ def get_all_inspections(
                 email=engineer_user.email
             )
 
+        verdict_dict = inspection.model_verdict.to_dict()
+
         resp_dict = {
             "id": inspection.inspection_id,
             "engineer_id": inspection.engineer_id,
             "timestamp": inspection.timestamp,
-            "model_verdict": inspection.model_verdict,
+            "model_verdict": verdict_dict,
             "address": inspection.address,
             "name": inspection.name,
             "photos": inspection.photos,
             "status_sync": inspection.status_sync,
             "engineer": engineer_info
         }
+
         response_inspections.append(InspectionResponse.model_validate(resp_dict))
 
     str_next = json.dumps(raw_next_cursor) if raw_next_cursor else None

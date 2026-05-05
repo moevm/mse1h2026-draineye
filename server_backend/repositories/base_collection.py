@@ -1,6 +1,5 @@
 from google.cloud import firestore
 from server_backend.imports import Optional, Any, List, FieldFilter
-
 '''
 базовый класс для работы с коллекциями Firestore,
 реализующий общие CRUD операции для всех моделей данных

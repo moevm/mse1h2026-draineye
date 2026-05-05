@@ -150,3 +150,12 @@ class FirebaseService:
             result_pairs.append((insp, engineer_user))
 
         return result_pairs, raw_cursor
+
+    def get_active_inspectors_count(self):
+        return self.users_collection.get_active_inspectors_count()
+
+    def get_inspections_count(self):
+        return self.inspections_collection.get_inspections_count()
+
+    def get_today_inspections_count(self):
+        return self.inspections_collection.get_today_inspections_count()

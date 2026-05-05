@@ -65,7 +65,6 @@ def register_inspector(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
-'''endpoint для авторизации инспектора'''
 @router.post("/login")
 def login_inspector(
     user: User = Depends(require_inspector)

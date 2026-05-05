@@ -22,6 +22,7 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный или истёкший токен"
         )
+
     try:
         user_record = auth.get_user(uid)
         if not user_record.email_verified:

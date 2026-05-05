@@ -65,7 +65,6 @@ class InspectionsCollection(BaseCollection):
             docs = docs[:limit]
 
         inspections = [self.model_cls.from_dict(doc) for doc in docs]
-
         next_c = None
         if has_more and docs:
             last_doc = docs[-1]

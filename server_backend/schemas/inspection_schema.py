@@ -30,7 +30,6 @@ class InspectionResponse(InspectionSchema):
     class Config:
         from_attributes = True
 
-
 class InspectionListQueryParams(BaseModel):
     limit: int = Field(50, ge=1, le=50)
     next_cursor: Optional[str] = None

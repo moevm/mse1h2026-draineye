@@ -81,7 +81,6 @@ class StorageService:
             active_inspectors = self._firebase.get_active_inspectors_count()
             total_inspections = self._firebase.get_inspections_count()
             today_inspections = self._firebase.get_today_inspections_count()
-
             return {
                 "active_inspectors": active_inspectors,
                 "total_inspections": total_inspections,
