@@ -25,7 +25,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void>? _googleSignInInitialized;
 
   // базовый URL бэкенда (можно позже заменить на реальный)
-  final String baseUrl = 'https://3yxoyp-95-161-60-178.ru.tuna.am';
+  final String baseUrl = 'https://2pw8ay-95-161-60-178.ru.tuna.am';
 
   static const _userPrefsKey = 'user';
   static const _authTokenPrefsKey = 'auth_token';
@@ -301,7 +301,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required bool signOutOnBackendError,
   }) async {
     final response = await _httpClient.post(
-      Uri.parse('$baseUrl/inspector/login/inspector'),
+      Uri.parse('$baseUrl/inspector/login'),
       headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',

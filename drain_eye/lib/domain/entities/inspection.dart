@@ -3,7 +3,8 @@ class Inspection {
   final int id;
   final int userId;
   final DateTime timestamp;
-  final String photoUrl;    
+  final String photoUrl;
+  final List<String> photoUrls;
   final String material;  
   final double confidence;    
   final int condition;  
@@ -20,6 +21,7 @@ class Inspection {
     required this.userId,
     required this.timestamp,
     required this.photoUrl,
+    List<String>? photoUrls,
     required this.material,
     required this.confidence,
     required this.condition,
@@ -28,7 +30,7 @@ class Inspection {
     required this.address,
     this.damageTypeCode,
     this.damageDegree,
-  });
+  }) : photoUrls = photoUrls ?? (photoUrl.isEmpty ? const [] : [photoUrl]);
 
   // отображение состояния в UI
   String get conditionLabel => '$condition/5';

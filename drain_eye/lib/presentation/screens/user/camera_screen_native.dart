@@ -47,6 +47,21 @@ class _CameraScreenState extends State<CameraScreen> {
     return dest.path;
   }
 
+  Future<void> _clearSessionPhotos() async {
+    final paths = List<String>.from(_sessionPhotoPaths);
+    _sessionPhotoPaths.clear();
+    for (final path in paths) {
+      try {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {
+        // Временный файл мог быть уже удален системой или недоступен.
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -195,8 +210,12 @@ class _CameraScreenState extends State<CameraScreen> {
               .then((saved) {
             if (!context.mounted) return;
             context.read<NewInspectionBloc>().add(ResetNewInspection());
-            if (saved == true) {
-              setState(() => _sessionPhotoPaths.clear());
+            if (saved == true || saved == false) {
+              _clearSessionPhotos().then((_) {
+                if (mounted) {
+                  setState(() {});
+                }
+              });
             }
           });
         } else if (state is NewInspectionAnalysisFailure) {

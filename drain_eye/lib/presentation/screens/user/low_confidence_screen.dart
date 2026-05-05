@@ -1,3 +1,8 @@
+import 'dart:io' if (dart.library.html) 'package:drain_eye/stubs/dart_io_stub.dart';
+
+import 'package:drain_eye/core/damage_type_labels.dart';
+import 'package:drain_eye/domain/entities/model_inference_result.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 const _teal = Color(0xFF0D9488);
@@ -5,17 +10,30 @@ const _gray400 = Color(0xFF94A3B8);
 const _gray500 = Color(0xFF64748B);
 const _orange = Color(0xFFF59E0B);
 
+enum LowConfidenceAction {
+  retakePhoto,
+  manualReview,
+}
+
+class LowConfidenceDecision {
+  final LowConfidenceAction action;
+  final ModelInferenceResult? correctedResult;
+
+  const LowConfidenceDecision({
+    required this.action,
+    this.correctedResult,
+  });
+}
+
 /// Экран низкой уверенности модели (UC-9) — предупреждение + выбор действия.
 class LowConfidenceScreen extends StatefulWidget {
-  final String material;
-  final int condition;
-  final int confidencePercent;
+  final ModelInferenceResult result;
+  final List<String> photoPaths;
 
   const LowConfidenceScreen({
     super.key,
-    this.material = 'Металл',
-    this.condition = 2,
-    this.confidencePercent = 38,
+    required this.result,
+    this.photoPaths = const [],
   });
 
   @override
@@ -23,13 +41,44 @@ class LowConfidenceScreen extends StatefulWidget {
 }
 
 class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
+  final _manualFormKey = GlobalKey<FormState>();
+  late final TextEditingController _stateController;
+  late final TextEditingController _damageDegreeController;
+
   int _selectedOption = 0;
+  late String _selectedDamageType;
 
   final _options = [
     'Переснять фото',
-    'Уточнить материал',
     'Проверить вручную',
   ];
+
+  final _damageTypes = const [
+    'no_damage',
+    'corrosion',
+    'crack',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _stateController = TextEditingController(
+      text: (widget.result.state ?? 1).toString(),
+    );
+    _damageDegreeController = TextEditingController(
+      text: (widget.result.damageDegree ?? 1.0).toStringAsFixed(2),
+    );
+    _selectedDamageType = _damageTypes.contains(widget.result.damageType)
+        ? widget.result.damageType
+        : 'no_damage';
+  }
+
+  @override
+  void dispose() {
+    _stateController.dispose();
+    _damageDegreeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,16 +95,7 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // фото
-            Container(
-              width: double.infinity,
-              height: 120,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.camera_alt, color: _gray400, size: 32),
-            ),
+            _LowConfidencePhotoCarousel(paths: widget.photoPaths),
             const SizedBox(height: 14),
 
             // карточка результата (оранжевая граница)
@@ -75,9 +115,10 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
                 children: [
                   const Text('Результат анализа', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _orange)),
                   const SizedBox(height: 10),
-                  _row('Материал', widget.material),
-                  _row('Состояние', '${widget.condition} / 5', badge: true),
-                  _row('Уверенность', '${widget.confidencePercent}%', valueColor: _orange),
+                  _row('Материал', widget.result.material ?? '?'),
+                  _row('Состояние', '${widget.result.state ?? '?'} / 5', badge: true),
+                  _row('Тип повреждения', damageTypeLabelRu(widget.result.damageType)),
+                  _row('Уверенность', '${(widget.result.accuracyModel * 100).toStringAsFixed(1)}%', valueColor: _orange),
                 ],
               ),
             ),
@@ -137,6 +178,42 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
                 ),
               );
             }),
+            if (_selectedOption == 1) ...[
+              const SizedBox(height: 8),
+              Form(
+                key: _manualFormKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _manualLabel('Состояние (1-5)'),
+                    _manualNumberField(
+                      controller: _stateController,
+                      hintText: 'Например, 3',
+                      validator: (value) => _validateNumber(
+                        value,
+                        min: 1,
+                        max: 5,
+                        integerOnly: true,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _manualLabel('Тип повреждения'),
+                    _damageTypeDropdown(),
+                    const SizedBox(height: 10),
+                    _manualLabel('Степень повреждения (1-5)'),
+                    _manualNumberField(
+                      controller: _damageDegreeController,
+                      hintText: 'Например, 3.50',
+                      validator: (value) => _validateNumber(
+                        value,
+                        min: 1,
+                        max: 5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 14),
 
             // кнопки OK / Отмена
@@ -152,7 +229,22 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         elevation: 0,
                       ),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        final action = LowConfidenceAction.values[_selectedOption];
+                        if (action == LowConfidenceAction.manualReview &&
+                            !_manualFormKey.currentState!.validate()) {
+                          return;
+                        }
+                        Navigator.pop(
+                          context,
+                          LowConfidenceDecision(
+                            action: action,
+                            correctedResult: action == LowConfidenceAction.manualReview
+                                ? _correctedResult()
+                                : null,
+                          ),
+                        );
+                      },
                       child: const Text('OK', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                     ),
                   ),
@@ -198,4 +290,201 @@ class _LowConfidenceScreenState extends State<LowConfidenceScreen> {
       ),
     );
   }
+
+  ModelInferenceResult _correctedResult() {
+    final state = int.parse(_stateController.text.trim());
+    final damageDegree = double.parse(
+      _damageDegreeController.text.trim().replaceAll(',', '.'),
+    );
+    return widget.result.copyWith(
+      state: state,
+      damageType: _selectedDamageType,
+      damageDegree: double.parse(damageDegree.toStringAsFixed(2)),
+      accuracyModel: 1.0,
+      comments: 'Низкая уверенность модели: результат скорректирован вручную.',
+    );
+  }
+
+  Widget _manualLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF334155),
+        ),
+      ),
+    );
+  }
+
+  Widget _manualNumberField({
+    required TextEditingController controller,
+    required String hintText,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(color: _gray400, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _teal, width: 1.5),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _damageTypeDropdown() {
+    return Container(
+      width: double.infinity,
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedDamageType,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: _gray400),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+          items: _damageTypes
+              .map(
+                (type) => DropdownMenuItem(
+                  value: type,
+                  child: Text(damageTypeLabelRu(type)),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() => _selectedDamageType = value);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  String? _validateNumber(
+    String? value, {
+    required double min,
+    required double max,
+    bool integerOnly = false,
+  }) {
+    final text = value?.trim();
+    if (text == null || text.isEmpty) return 'введите значение';
+    final parsed = double.tryParse(text.replaceAll(',', '.'));
+    if (parsed == null) return 'введите число';
+    if (integerOnly && parsed % 1 != 0) return 'введите целое число';
+    if (parsed < min || parsed > max) {
+      return 'значение должно быть от ${min.toStringAsFixed(0)} до ${max.toStringAsFixed(0)}';
+    }
+    return null;
+  }
+}
+
+class _LowConfidencePhotoCarousel extends StatefulWidget {
+  final List<String> paths;
+
+  const _LowConfidencePhotoCarousel({required this.paths});
+
+  @override
+  State<_LowConfidencePhotoCarousel> createState() =>
+      _LowConfidencePhotoCarouselState();
+}
+
+class _LowConfidencePhotoCarouselState
+    extends State<_LowConfidencePhotoCarousel> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final paths = widget.paths;
+    if (paths.isEmpty || kIsWeb) {
+      return _lowConfidencePhotoPlaceholder();
+    }
+
+    if (paths.length == 1) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: SizedBox(
+          width: double.infinity,
+          height: 120,
+          child: Image.file(
+            File(paths.first),
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => _lowConfidencePhotoPlaceholder(),
+          ),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: double.infinity,
+        height: 120,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            PageView.builder(
+              itemCount: paths.length,
+              onPageChanged: (page) => setState(() => _page = page),
+              itemBuilder: (context, index) {
+                return Image.file(
+                  File(paths[index]),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _lowConfidencePhotoPlaceholder(),
+                );
+              },
+            ),
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'Фото ${_page + 1} из ${paths.length}',
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _lowConfidencePhotoPlaceholder() {
+  return Container(
+    width: double.infinity,
+    height: 120,
+    decoration: BoxDecoration(
+      color: const Color(0xFFF1F5F9),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: const Icon(Icons.camera_alt, color: _gray400, size: 32),
+  );
 }
