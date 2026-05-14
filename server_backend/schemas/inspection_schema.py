@@ -1,5 +1,5 @@
 from server_backend.imports import datetime, List, BaseModel, Field, Optional
-from server_backend.models.inspection import SyncStatus
+from server_backend.models import SyncStatus
 
 class ModelVerdictSchema(BaseModel):
     material: str

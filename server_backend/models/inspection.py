@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from server_backend.imports import datetime, List, Optional, Enum
-from server_backend.schemas import InspectionSchema, ModelVerdictSchema
 
 '''
 класс для хранения вердикта, вынесенного ML моделью
@@ -38,7 +37,7 @@ class ModelVerdict:
 
     '''преобразование из схемы'''
     @classmethod
-    def from_schema(cls, schema: ModelVerdictSchema):
+    def from_schema(cls, schema):
         return cls(
             material=schema.material,
             state=schema.state,
@@ -107,7 +106,7 @@ class Inspection:
 
     '''преобразование из схемы'''
     @classmethod
-    def from_schema(cls, schema: InspectionSchema, photos: List[str] = None):
+    def from_schema(cls, schema, photos: List[str] = None):
         return cls(
             engineer_id=schema.engineer_id,
             timestamp=schema.timestamp,

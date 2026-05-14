@@ -1,6 +1,6 @@
 from server_backend.imports import firebase_admin, auth
 from server_backend.imports import credentials, firestore, datetime, timezone, Optional, Tuple, List
-from server_backend.models.inspection import SyncStatus
+from server_backend.models import SyncStatus
 from server_backend.repositories import UsersCollection, InspectionsCollection
 from server_backend.models.user import User, UserRole
 from server_backend.config import settings

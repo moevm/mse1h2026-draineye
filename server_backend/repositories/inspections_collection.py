@@ -1,7 +1,6 @@
 from server_backend.imports import Optional, List, datetime, timezone, Tuple
 from google.cloud import firestore
-from server_backend.models import Inspection
-from server_backend.models.inspection import SyncStatus
+from server_backend.models import Inspection, SyncStatus
 from server_backend.repositories import BaseCollection
 
 '''

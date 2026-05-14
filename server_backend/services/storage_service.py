@@ -1,9 +1,8 @@
 from server_backend.services import FirebaseService
 from server_backend.services.cloudinary_service import CloudinaryService
 from server_backend.imports import Optional, List, UploadFile, Tuple
-from server_backend.models import Inspection, User
+from server_backend.models import Inspection, User, SyncStatus
 from server_backend.models.user import UserRole
-from server_backend.models.inspection import SyncStatus
 from server_backend.schemas import InspectionSchema
 
 '''общий сервис для управлением хранилищами'''
