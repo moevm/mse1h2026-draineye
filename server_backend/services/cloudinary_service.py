@@ -2,8 +2,10 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from server_backend.config import settings
-from server_backend.imports import List, os, io
+from server_backend.imports import List, logging, io
 from server_backend.imports import UploadFile
+
+logger = logging.getLogger(__name__)
 
 '''
 cинглтон-сервис для управления подключением к Cloudinary и доступа к облаку
@@ -23,13 +25,15 @@ class CloudinaryService:
             settings.CLOUDINARY_API_KEY,
             settings.CLOUDINARY_API_SECRET
         ]):
-            raise ValueError("Cloudinary credentials not configured")
+            logger.error("Ошибка инициализации Cloudinary: отсутствуют конфигурационные параметры")
+            raise ValueError("Cloudinary ошибка в конфиге")
         cloudinary.config(
             cloud_name=settings.CLOUDINARY_CLOUD_NAME,
             api_key=settings.CLOUDINARY_API_KEY,
             api_secret=settings.CLOUDINARY_API_SECRET,
             secure=True
         )
+        logger.info("Cloudinary успешно инициализирован")
 
     '''генерирует public id для доступа к фотке с сервера'''
     def generate_public_id(self, engineer_id: str, inspection_id: str, filename: str) -> str:
@@ -53,6 +57,7 @@ class CloudinaryService:
 
     '''загрузка фоток на облако'''
     async def upload_photos(self, files: List[UploadFile], public_ids: List[str]):
+        logger.info(f"Начало загрузки {len(files)} фотографий")
         for file, public_id in zip(files, public_ids):
             if file and file.filename:
                 await self.upload_photo(file, public_id)
@@ -73,6 +78,7 @@ class CloudinaryService:
             )
             await file.seek(0)
         except Exception as e:
+            logger.error(f"Ошибка загрузки фото {file.filename} (ID: {public_id}): {str(e)}", exc_info=True)
             raise e
 
     async def upload_avatar(self, file: UploadFile, user_id: str) -> str:
@@ -92,5 +98,4 @@ class CloudinaryService:
             await file.seek(0)
             return result.get("secure_url")
         except Exception as e:
-            print(f"Ошибка загрузки аватарки для {user_id}: {e}")
             raise

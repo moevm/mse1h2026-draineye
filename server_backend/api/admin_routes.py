@@ -1,10 +1,12 @@
 from server_backend.services.storage_service import StorageService
-from server_backend.imports import APIRouter, Depends, HTTPException, json
+from server_backend.imports import APIRouter, Depends, HTTPException, json, logging
 from server_backend.models import User
 from server_backend.schemas.auth_request import RegisterRequest
 from server_backend.server.auth import  require_admin
 from server_backend.schemas.user_schema import PaginatedUsersResponse, UserListQueryParams, UserResponse
 from server_backend.schemas.inspection_schema import PaginatedInspectionsResponse, InspectionListQueryParams, EngineerBriefResponse, InspectionResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/admin",
@@ -21,23 +23,30 @@ def register_admin(
     request: RegisterRequest,
     ss: StorageService = Depends(create_storage_service)
 ):
+    email_safe = str(request.email).strip()
+    logger.info(f"Запрос на регистрацию АДМИНИСТРАТОРА: {email_safe}")
+
     try:
         uid = ss.register_admin(
             email=str(request.email).strip().lower(),
             password=request.password,
             full_name=request.full_name
         )
+        logger.info(f"Администратор успешно зарегистрирован. UID: {uid}")
         return {"user_id": uid, "status": "created", "role": "admin"}
 
     except ValueError as e:
+        logger.warning(f"Ошибка регистрации админа для {email_safe}: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.error(f"Ошибка сервера при регистрации админа {email_safe}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Ошибка сервера: {str(e)}")
 
 @router.post("/login")
 def login_admin(
     user: User = Depends(require_admin)
 ):
+    logger.info(f"Успешный вход АДМИНИСТРАТОРА: {user.email} (ID: {user.user_id})")
     return {
         "status": "success",
         "user_id": user.user_id,
@@ -52,10 +61,12 @@ def get_dashboard_metrics(
     ss: StorageService = Depends(create_storage_service),
     user: User = Depends(require_admin)
 ):
+    logger.info(f"Запрос метрик дашборда админом: {user.user_id}")
     try:
         metrics_data = ss.get_dashboard_metrics()
         return metrics_data
     except Exception:
+        logger.error(f"Ошибка при получении метрик для админа {user.user_id}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="Внутренняя ошибка сервера при получении метрик"
@@ -67,6 +78,8 @@ def get_users_by_role(
     user: User = Depends(require_admin),
     params: UserListQueryParams = Depends(),
 ):
+    logger.info(f"Запрос списка инспекторов, Лимит: {params.limit}")
+
     parsed_cursor = json.loads(params.next_cursor) if params.next_cursor else None
 
     users_list, raw_next_cursor = ss.get_users_by_role_paginated(
@@ -92,6 +105,8 @@ def get_all_inspections(
     user: User = Depends(require_admin),
     params: InspectionListQueryParams = Depends(),
 ):
+    logger.info(f"Запрос списка всех инспекций. Лимит: {params.limit}")
+
     parsed_cursor = json.loads(params.next_cursor) if params.next_cursor else None
 
     pairs, raw_next_cursor = ss.get_all_inspections_paginated_with_engineer(

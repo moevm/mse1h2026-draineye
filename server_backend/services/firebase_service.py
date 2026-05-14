@@ -1,10 +1,12 @@
 from server_backend.imports import firebase_admin, auth
-from server_backend.imports import credentials, firestore, datetime, timezone, Optional, Tuple, List
+from server_backend.imports import credentials, firestore, datetime, timezone, Optional, Tuple, List, logging
 from server_backend.models import SyncStatus
 from server_backend.repositories import UsersCollection, InspectionsCollection
 from server_backend.models.user import User, UserRole
 from server_backend.config import settings
 from server_backend.models import Inspection
+
+logger = logging.getLogger(__name__)
 
 '''
 cинглтон-сервис для управления подключением к Firebase и доступа к коллекциям
@@ -28,13 +30,19 @@ class FirebaseService:
         try:
             self._app = firebase_admin.get_app()
         except ValueError:
+            logger.info(f"Инициализация нового приложения Firebase")
             cred_path = settings.FIREBASE_CREDENTIALS_PATH
             cred = credentials.Certificate(cred_path)
             self._app = firebase_admin.initialize_app(
                 cred,
                 {'storageBucket': f"{settings.PROJECT_GOOGLE_ID}.appspot.com"}
             )
-        self._db = firestore.client(app=self._app, database_id='dev-bd')
+        try:
+            self._db = firestore.client(app=self._app, database_id='dev-bd')
+            logger.info("Клиент Firestore создан")
+        except Exception as e:
+            logger.error(f"Ошибка создания клиента Firestore: {str(e)}", exc_info=True)
+            raise
 
     '''для доступа к коллекции пользователей'''
     @property
@@ -46,6 +54,7 @@ class FirebaseService:
     '''создаёт пользователя в Firebase Auth и сохраняет профиль в Firestore'''
     def register_user(self, email: str, password: str, full_name: str, role: UserRole) -> str:
         if self.is_email_taken(email):
+            logger.warning(f"Регистрация не удалась: Email {email} уже занят")
             raise ValueError("Email уже зарегистрирован")
 
         self.validate_password(password)
@@ -55,6 +64,7 @@ class FirebaseService:
             password=password,
             display_name=full_name
         )
+        logger.info(f"Пользователь создан в Firebase Auth: {user_record.uid}")
         new_user = User(
             user_id=user_record.uid,
             email=email,
@@ -74,17 +84,18 @@ class FirebaseService:
             return True
         except auth.UserNotFoundError:
             return False
-        except Exception:
+        except Exception as e:
+            logger.error(f"Ошибка проверки email {email} в Firebase Auth: {str(e)}")
             return True
 
     '''валидация пароля'''
     def validate_password(self, password: str):
         if len(password) < 8:
-            raise ValueError("Минимум 8 символов")
+            raise ValueError("Пароль: минимум 8 символов")
         if not any(c.isdigit() for c in password):
-            raise ValueError("Нужна хотя бы одна цифра")
+            raise ValueError("Пароль: нужна хотя бы одна цифра")
         if not any(c.isupper() for c in password):
-            raise ValueError("Пароль должен содержать заглавную букву")
+            raise ValueError("Пароль: должен содержать заглавную букву")
 
     def get_user_by_uid(self, uid: str) -> Optional[User]:
         return self.users_collection.get_by_uid(uid)
@@ -106,7 +117,8 @@ class FirebaseService:
         try:
             decoded_token = auth.verify_id_token(token)
             return decoded_token['uid']
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Неверный токен авторизации: {str(e)}")
             return None
 
     '''для доступа к коллекции инспекций'''
@@ -152,11 +164,14 @@ class FirebaseService:
 
         return result_pairs, raw_cursor
 
+    '''количетсво активных инспекторов'''
     def get_active_inspectors_count(self):
         return self.users_collection.get_active_inspectors_count()
 
+    '''количество инспекций'''
     def get_inspections_count(self):
         return self.inspections_collection.get_inspections_count()
 
+    '''количество сегодняшних инспекций'''
     def get_today_inspections_count(self):
         return self.inspections_collection.get_today_inspections_count()

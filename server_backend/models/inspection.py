@@ -86,7 +86,7 @@ class Inspection:
             'address': self.address,
             'name': self.name,
             'photos': self.photos.copy(),
-            'status_sync': self.status_sync
+            'status_sync': self.status_sync.value
         }
 
     """создает объект Inspection из документа Firestore"""

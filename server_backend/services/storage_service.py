@@ -67,15 +67,19 @@ class StorageService:
             "status": sync_status
         }
 
+    '''верификация токена'''
     def verify_token(self, token: str) -> Optional[str]:
         return self._firebase.verify_token(token)
 
+    '''получение юзера'''
     def get_user(self, uid: str):
         return  self._firebase.get_user_by_uid(uid)
 
+    '''обновить время последней активности'''
     def log_activity(self, uid: str):
         return self._firebase.log_activity(uid)
 
+    '''получение метрик дашборда'''
     def get_dashboard_metrics(self) -> dict:
         try:
             active_inspectors = self._firebase.get_active_inspectors_count()
@@ -89,6 +93,7 @@ class StorageService:
         except Exception as e:
             raise e
 
+    '''получение инспекторов'''
     def get_users_by_role_paginated(
             self, role: UserRole, limit: int, next_cursor: Optional[List],active_only: bool
     ) -> Tuple[List[User], Optional[List]]:
@@ -99,6 +104,7 @@ class StorageService:
             active_only=active_only
         )
 
+    '''получение инспекций'''
     def get_all_inspections_paginated_with_engineer(
          self,limit: int, next_cursor: Optional[List],
     ) -> Tuple[List[Tuple[Inspection, Optional[User]]], Optional[List]]:
