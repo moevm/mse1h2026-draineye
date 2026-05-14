@@ -3,6 +3,7 @@ from server_backend.services.cloudinary_service import CloudinaryService
 from server_backend.imports import Optional, List, UploadFile, Tuple
 from server_backend.models import Inspection, User
 from server_backend.models.user import UserRole
+from server_backend.models.inspection import SyncStatus
 from server_backend.schemas import InspectionSchema
 
 '''общий сервис для управлением хранилищами'''
@@ -24,7 +25,7 @@ class StorageService:
         return self._firebase.get_inspections_by_engineer(engineer_id, limit)
 
     '''добавление инспекции'''
-    def add_inspection(self, inspection) -> str:
+    def add_inspection(self, inspection) -> Tuple[str, SyncStatus]:
         return self._firebase.add_inspection(inspection)
 
     '''регистрирует инспектора'''
@@ -42,7 +43,7 @@ class StorageService:
         files: Optional[List[UploadFile]] = None
     ) -> dict:
         inspection = Inspection.from_schema(inspection_schema)
-        inspection_id = self.add_inspection(inspection)
+        inspection_id, sync_status = self.add_inspection(inspection)
 
         photo_urls = []
         if files and inspection_id and len(files) > 0:
@@ -64,7 +65,7 @@ class StorageService:
         return {
             "inspection_id": inspection_id,
             "photo_urls": photo_urls,
-            "status": "created"
+            "status": sync_status
         }
 
     def verify_token(self, token: str) -> Optional[str]:

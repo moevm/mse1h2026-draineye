@@ -1,5 +1,6 @@
 from server_backend.imports import firebase_admin, auth
 from server_backend.imports import credentials, firestore, datetime, timezone, Optional, Tuple, List
+from server_backend.models.inspection import SyncStatus
 from server_backend.repositories import UsersCollection, InspectionsCollection
 from server_backend.models.user import User, UserRole
 from server_backend.config import settings
@@ -120,7 +121,7 @@ class FirebaseService:
         return self.inspections_collection.get_inspections_by_eng_id(engineer_id, limit)
 
     '''метод для добавления инспеции'''
-    def add_inspection(self, inspection: Inspection) -> str:
+    def add_inspection(self, inspection: Inspection) -> Tuple[str, SyncStatus]:
         self.users_collection.increment_inspections(inspection.engineer_id)
         return self.inspections_collection.add_inspection(inspection)
 

@@ -1,6 +1,7 @@
 from server_backend.imports import Optional, List, datetime, timezone, Tuple
 from google.cloud import firestore
 from server_backend.models import Inspection
+from server_backend.models.inspection import SyncStatus
 from server_backend.repositories import BaseCollection
 
 '''
@@ -25,8 +26,9 @@ class InspectionsCollection(BaseCollection):
         return inspection.status_sync
 
     '''добавление инспекции'''
-    def add_inspection(self, inspection: Inspection) -> str:
-        return self.add(inspection.to_dict())
+    def add_inspection(self, inspection: Inspection) -> Tuple[str, SyncStatus]:
+        inspection.status_sync = self.check_by_address(inspection)
+        return self.add(inspection.to_dict()), inspection.status_sync
 
     '''удаление инспекции'''
     def delete_inspection(self, inspection_id: str) -> bool:
@@ -71,3 +73,33 @@ class InspectionsCollection(BaseCollection):
             next_c = [last_doc.get("timestamp"), last_doc.id]
 
         return inspections, next_c
+
+    def check_by_address(self, inspection: Inspection) -> SyncStatus:
+        query = (
+            self.collection
+            .where("address", "==", inspection.address)
+            .order_by("timestamp", direction=firestore.Query.DESCENDING)
+            .limit(1)
+        )
+        docs = list(query.stream())
+
+        if not docs:
+            return SyncStatus.SYNCED
+
+        latest_doc = docs[0]
+        latest_ts_raw = latest_doc.to_dict().get("timestamp")
+
+        if isinstance(latest_ts_raw, str):
+            latest_ts = datetime.fromisoformat(latest_ts_raw.replace("Z", "+00:00"))
+        else:
+            latest_ts = latest_ts_raw
+
+        new_ts = inspection.timestamp
+        if new_ts.tzinfo is None:
+            new_ts = new_ts.replace(tzinfo=timezone.utc)
+
+        if latest_ts > new_ts:
+            return SyncStatus.OUTDATED
+        else:
+            latest_doc.reference.update({"status_sync": SyncStatus.OUTDATED})
+            return SyncStatus.SYNCED

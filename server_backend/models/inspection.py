@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from server_backend.imports import datetime, List, Optional
+from server_backend.imports import datetime, List, Optional, Enum
 from server_backend.schemas import InspectionSchema, ModelVerdictSchema
 
 '''
@@ -49,6 +49,22 @@ class ModelVerdict:
         )
 
 '''
+Статус синхронизации инспекции
+'''
+class SyncStatus(Enum):
+    PENDING = "pending"  # Отправлено на сервер
+    SYNCED = "synced"  # Синхронизирована
+    OUTDATED = "outdated"  # Ошибка синхронизации
+
+    """Создает SyncStatus из строки"""
+    @classmethod
+    def from_string(cls, value: str):
+        for status in cls:
+            if status.value == value:
+                return status
+        raise ValueError(f"Неизвестный sync status: {value}")
+
+'''
 класс, представляющий полную информацию об инспекции 
 '''
 @dataclass
@@ -59,7 +75,7 @@ class Inspection:
     address: str
     name: str
     photos: List[str]
-    status_sync: str
+    status_sync: SyncStatus
     inspection_id: Optional[str] = None
 
     """преобразует объект Inspection в словарь для сохранения в Firestore"""
