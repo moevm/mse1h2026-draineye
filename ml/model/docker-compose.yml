@@ -1,0 +1,33 @@
+services:
+  train:
+    image: draineye-ml
+    build: .
+    env_file: .env
+    volumes:
+      - ./data:/data
+      - ./models:/models
+    command: python src/train.py --data /data/data.yaml --output /models --name model_v1
+
+  predict:
+    image: draineye-ml
+    env_file: .env
+    volumes:
+      - ./data:/data
+      - ./models:/models
+    command: python src/predict.py --image /data/test/images --weights /models/model_v1/weights/best.pt --data-dir /data
+
+  export:
+    image: draineye-ml
+    env_file: .env
+    volumes:
+      - ./models:/models
+    command: python src/export.py --weights /models/model_v1/weights/best.pt --output /models/model_v1.tflite
+
+  test:
+    image: draineye-ml
+    build: .
+    volumes:
+      - ./models:/models
+      - ./tests:/app/tests
+    command: pytest -q
+

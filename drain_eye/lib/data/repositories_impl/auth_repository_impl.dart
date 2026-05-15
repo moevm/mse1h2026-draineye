@@ -50,6 +50,7 @@ class AuthRepositoryImpl implements AuthRepository {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'tuna-skip-browser-warning': 'true',
       },
       body: jsonEncode({
         'email': normalizedEmail,
@@ -303,6 +304,7 @@ class AuthRepositoryImpl implements AuthRepository {
       headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',
+        'tuna-skip-browser-warning': 'true',
       },
     );
 

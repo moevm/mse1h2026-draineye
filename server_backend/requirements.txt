@@ -1,0 +1,19 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# Firebase & Google Cloud
+firebase-admin==6.4.0
+google-cloud-firestore==2.14.0
+google-cloud-storage==2.14.0
+google-auth==2.25.2
+google-api-core==2.15.0
+
+# Cloud Storage for Images/Media
+cloudinary==1.36.0
+
+# Data Validation & Settings
+pydantic[email]==2.5.3
+python-dotenv==1.0.0
+
+# Testing
+pytest==8.3.5
