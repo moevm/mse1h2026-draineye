@@ -9,11 +9,13 @@ class SubmitInspection {
 
   Future<InspectionSubmitResult> call({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) {
     return repository.submitInspection(
       engineerId: engineerId,
+      address: address,
       photoPaths: photoPaths,
       modelResult: modelResult,
     );

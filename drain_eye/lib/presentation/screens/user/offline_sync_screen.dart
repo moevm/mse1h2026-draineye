@@ -11,11 +11,13 @@ const _orange = Color(0xFFF59E0B);
 /// Экран офлайн-синхронизации (UC-10).
 class OfflineSyncScreen extends StatelessWidget {
   final ModelInferenceResult modelResult;
+  final String address;
   final int pendingCount;
 
   const OfflineSyncScreen({
     super.key,
     required this.modelResult,
+    required this.address,
     required this.pendingCount,
   });
 
@@ -115,6 +117,7 @@ class OfflineSyncScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  _row('Адрес', address),
                   _row('Материал', materialLabel),
                   _rowBadge(
                     'Состояние',

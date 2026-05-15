@@ -63,6 +63,7 @@ class NewInspectionBloc extends Bloc<NewInspectionEvent, NewInspectionState> {
     try {
       final result = await _submitInspection(
         engineerId: event.engineerId,
+        address: event.address,
         photoPaths: event.photoPaths,
         modelResult: event.modelResult,
       );
@@ -73,6 +74,7 @@ class NewInspectionBloc extends Bloc<NewInspectionEvent, NewInspectionState> {
       final pending = await _inspectionRepository.pendingInspectionsCount();
       emit(NewInspectionOfflineRequired(
         engineerId: event.engineerId,
+        address: event.address,
         photoPaths: event.photoPaths,
         modelResult: event.modelResult,
         pendingCount: pending,
@@ -93,6 +95,7 @@ class NewInspectionBloc extends Bloc<NewInspectionEvent, NewInspectionState> {
     try {
       await _cacheInspectionOffline(
         engineerId: event.engineerId,
+        address: event.address,
         photoPaths: event.photoPaths,
         modelResult: event.modelResult,
       );

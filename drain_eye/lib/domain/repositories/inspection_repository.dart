@@ -9,12 +9,14 @@ abstract class InspectionRepository {
 
   Future<InspectionSubmitResult> submitInspection({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   });
 
   Future<void> cacheInspection({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   });

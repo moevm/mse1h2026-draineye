@@ -20,6 +20,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<InspectionSubmitResult> submitInspection({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) async {
@@ -29,6 +30,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<void> cacheInspection({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) async {}

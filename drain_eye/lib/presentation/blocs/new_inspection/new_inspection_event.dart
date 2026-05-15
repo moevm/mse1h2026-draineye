@@ -11,11 +11,13 @@ class RunDamageAnalysis extends NewInspectionEvent {
 
 class SubmitNewInspection extends NewInspectionEvent {
   final String engineerId;
+  final String address;
   final List<String> photoPaths;
   final ModelInferenceResult modelResult;
 
   SubmitNewInspection({
     required this.engineerId,
+    required this.address,
     required this.photoPaths,
     required this.modelResult,
   });
@@ -23,11 +25,13 @@ class SubmitNewInspection extends NewInspectionEvent {
 
 class CacheNewInspectionOffline extends NewInspectionEvent {
   final String engineerId;
+  final String address;
   final List<String> photoPaths;
   final ModelInferenceResult modelResult;
 
   CacheNewInspectionOffline({
     required this.engineerId,
+    required this.address,
     required this.photoPaths,
     required this.modelResult,
   });

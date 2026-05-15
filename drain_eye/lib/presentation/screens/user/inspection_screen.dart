@@ -68,7 +68,12 @@ class _InspectionScreenState extends State<InspectionScreen> {
               title: 'Информация',
               rows: [
                 _DetailRow('Дата', dateTimeStr),
-                _DetailRow('Место', inspection.address),
+                _DetailRow(
+                  'Место',
+                  inspection.address.trim().isEmpty
+                      ? 'Адрес не указан'
+                      : inspection.address,
+                ),
               ],
             ),
             const SizedBox(height: 12),

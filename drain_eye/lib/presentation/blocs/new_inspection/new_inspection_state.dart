@@ -36,12 +36,14 @@ class NewInspectionSubmitFailure extends NewInspectionState {
 /// Нет сети — показать экран UC-10.
 class NewInspectionOfflineRequired extends NewInspectionState {
   final String engineerId;
+  final String address;
   final List<String> photoPaths;
   final ModelInferenceResult modelResult;
   final int pendingCount;
 
   NewInspectionOfflineRequired({
     required this.engineerId,
+    required this.address,
     required this.photoPaths,
     required this.modelResult,
     required this.pendingCount,

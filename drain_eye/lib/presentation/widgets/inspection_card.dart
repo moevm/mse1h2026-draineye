@@ -82,11 +82,15 @@ class InspectionCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   // адрес
                   Text(
-                    inspection.address,
-                    style: const TextStyle(
+                    inspection.address.trim().isEmpty
+                        ? 'Адрес не указан'
+                        : inspection.address,
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF0F172A),
+                      color: inspection.address.trim().isEmpty
+                          ? _gray400
+                          : const Color(0xFF0F172A),
                     ),
                   ),
                   const SizedBox(height: 4),

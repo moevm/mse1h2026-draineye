@@ -8,11 +8,13 @@ class CacheInspectionOffline {
 
   Future<void> call({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) {
     return repository.cacheInspection(
       engineerId: engineerId,
+      address: address,
       photoPaths: photoPaths,
       modelResult: modelResult,
     );

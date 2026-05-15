@@ -129,6 +129,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<InspectionSubmitResult> submitInspection({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) async {
@@ -140,6 +141,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
     }
     return _uploadInspection(
       engineerId: engineerId,
+      address: address.trim(),
       photoPaths: photoPaths,
       modelResult: modelResult,
     );
@@ -148,6 +150,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
   @override
   Future<void> cacheInspection({
     required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) async {
@@ -156,6 +159,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
     }
     await _offlineCache.save(
       engineerId: engineerId,
+      address: address.trim(),
       photoPaths: photoPaths,
       modelResult: modelResult,
     );
