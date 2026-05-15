@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
-import 'package:drain_eye/core/cloudinary_image_url.dart';
+import 'package:drain_eye/core/inspection_time.dart';
+import 'package:drain_eye/presentation/widgets/inspection_photo_image.dart';
 import 'package:drain_eye/core/confidence_accent_color.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/inspection.dart';
@@ -39,8 +38,7 @@ class _InspectionScreenState extends State<InspectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
-    final dateTimeStr = dateFormat.format(inspection.timestamp);
+    final dateTimeStr = InspectionTime.formatForDisplay(inspection.timestamp);
     final accentColor =
         confidenceAccentColorFromPercent((inspection.confidence * 100).round());
 
@@ -68,7 +66,12 @@ class _InspectionScreenState extends State<InspectionScreen> {
               title: 'Информация',
               rows: [
                 _DetailRow('Дата', dateTimeStr),
-                _DetailRow('Место', inspection.address),
+                _DetailRow(
+                  'Место',
+                  inspection.address.trim().isEmpty
+                      ? 'Адрес не указан'
+                      : inspection.address,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -139,20 +142,6 @@ class _InspectionScreenState extends State<InspectionScreen> {
       return _photoPlaceholder('Фото не найдено');
     }
 
-    final imageUrls = photoUrls
-        .map(
-          (url) => cloudinaryImageUrl(
-            url,
-            transformations: 'w_900,h_500,c_fit,q_auto,f_auto',
-          ),
-        )
-        .whereType<String>()
-        .toList();
-
-    if (imageUrls.isEmpty) {
-      return _photoPlaceholder('Фото не найдено');
-    }
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: SizedBox(
@@ -162,23 +151,16 @@ class _InspectionScreenState extends State<InspectionScreen> {
           fit: StackFit.expand,
           children: [
             PageView.builder(
-              itemCount: imageUrls.length,
+              itemCount: photoUrls.length,
               onPageChanged: (page) => setState(() => _photoPage = page),
               itemBuilder: (context, index) {
-                final imageUrl = imageUrls[index];
-                return Image.network(
-                  imageUrl,
+                return InspectionPhotoImage(
+                  source: photoUrls[index],
+                  width: double.infinity,
+                  height: 220,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, error, __) {
-                    if (kDebugMode) {
-                      debugPrint('Inspection photo failed: $imageUrl error=$error');
-                    }
-                    return _photoPlaceholder('Не удалось загрузить фото');
-                  },
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return _photoPlaceholder('Загрузка фото...');
-                  },
+                  cloudinaryTransformations: 'w_900,h_500,c_fit,q_auto,f_auto',
+                  placeholder: _photoPlaceholder('Не удалось загрузить фото'),
                 );
               },
             ),
@@ -192,7 +174,7 @@ class _InspectionScreenState extends State<InspectionScreen> {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  'Фото ${_photoPage + 1} из ${imageUrls.length}',
+                  'Фото ${_photoPage + 1} из ${photoUrls.length}',
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),

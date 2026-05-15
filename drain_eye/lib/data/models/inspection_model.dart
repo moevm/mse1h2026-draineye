@@ -1,4 +1,6 @@
+import 'package:drain_eye/core/inspection_time.dart';
 import 'package:drain_eye/domain/entities/inspection.dart';
+import 'package:drain_eye/domain/entities/inspection_sync_status.dart';
 import 'package:flutter/foundation.dart';
 
 /// DTO ответа API (Firestore / FastAPI) → [Inspection] домена.
@@ -67,10 +69,7 @@ class InspectionModel {
         '[InspectionModel] id=${json['inspection_id'] ?? json['id']} photos=$photos rawPhotos=${json['photos']}',
       );
     }
-    final ts = json['timestamp'];
-    final timestamp = ts is String
-        ? (DateTime.tryParse(ts) ?? DateTime.fromMillisecondsSinceEpoch(0))
-        : DateTime.fromMillisecondsSinceEpoch(0);
+    final timestamp = InspectionTime.parseFromServer(json['timestamp']);
 
     return InspectionModel(
       inspectionId: json['inspection_id'] as String? ?? json['id']?.toString(),
@@ -103,12 +102,18 @@ class InspectionModel {
       confidence: confidence,
       condition: modelVerdict.state.clamp(0, 5),
       defects: defects,
-      synchronized: statusSync == 'save' || statusSync == 'synced',
+      synchronized: _isSynchronized(statusSync),
+      syncStatus: InspectionSyncStatus.fromApi(statusSync),
       address: address,
       damageTypeCode:
           modelVerdict.damageType.isEmpty ? null : modelVerdict.damageType,
       damageDegree: modelVerdict.damageDegree,
     );
+  }
+
+  static bool _isSynchronized(String statusSync) {
+    final s = statusSync.toLowerCase();
+    return s == 'synced' || s == 'outdated';
   }
 
   static int _domainId(String? inspectionId, int index) {

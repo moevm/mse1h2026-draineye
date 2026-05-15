@@ -4,24 +4,37 @@ part of 'new_inspection_bloc.dart';
 @immutable
 abstract class NewInspectionEvent {}
 
-// запуск анализа снимков локальной моделью
 class RunDamageAnalysis extends NewInspectionEvent {
   final List<String> photoPaths;
   RunDamageAnalysis(this.photoPaths);
 }
 
-// отправка инспекции на сервер
 class SubmitNewInspection extends NewInspectionEvent {
-  final int userId;
+  final String engineerId;
+  final String address;
   final List<String> photoPaths;
   final ModelInferenceResult modelResult;
 
   SubmitNewInspection({
-    required this.userId,
+    required this.engineerId,
+    required this.address,
     required this.photoPaths,
     required this.modelResult,
   });
 }
 
-// сброс состояния (после навигации / закрытия экрана)
+class CacheNewInspectionOffline extends NewInspectionEvent {
+  final String engineerId;
+  final String address;
+  final List<String> photoPaths;
+  final ModelInferenceResult modelResult;
+
+  CacheNewInspectionOffline({
+    required this.engineerId,
+    required this.address,
+    required this.photoPaths,
+    required this.modelResult,
+  });
+}
+
 class ResetNewInspection extends NewInspectionEvent {}

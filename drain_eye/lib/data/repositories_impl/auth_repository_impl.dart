@@ -41,7 +41,7 @@ class AuthRepositoryImpl implements AuthRepository {
       throw Exception('введите имя');
     }
 
-    final uri = Uri.parse('${ApiConfig.baseUrl}/admin/register');
+    final uri = Uri.parse(ApiConfig.register);
     if (kDebugMode) {
       print('Register backend request: $uri email=$normalizedEmail');
     }
@@ -300,7 +300,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required bool signOutOnBackendError,
   }) async {
     final response = await _httpClient.post(
-      Uri.parse('${ApiConfig.baseUrl}/admin/login'),
+      Uri.parse(ApiConfig.login),
       headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',

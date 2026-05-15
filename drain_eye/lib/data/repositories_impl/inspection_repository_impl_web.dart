@@ -1,8 +1,9 @@
 import 'package:drain_eye/domain/entities/inspection.dart';
+import 'package:drain_eye/domain/entities/inspection_submit_result.dart';
+import 'package:drain_eye/domain/entities/inspection_sync_status.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
 import 'package:drain_eye/domain/repositories/inspection_repository.dart';
 
-// Заглушка репозитория для веб-платформы (dart:io недоступен на web).
 class InspectionRepositoryImpl implements InspectionRepository {
   InspectionRepositoryImpl();
 
@@ -17,9 +18,26 @@ class InspectionRepositoryImpl implements InspectionRepository {
   }
 
   @override
-  Future<void> createInspection({
-    required int userId,
+  Future<InspectionSubmitResult> submitInspection({
+    required String engineerId,
+    required String address,
+    required List<String> photoPaths,
+    required ModelInferenceResult modelResult,
+  }) async {
+    return const InspectionSubmitResult(status: InspectionSyncStatus.synced);
+  }
+
+  @override
+  Future<void> cacheInspection({
+    required String engineerId,
+    required String address,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) async {}
+
+  @override
+  Future<int> pendingInspectionsCount() async => 0;
+
+  @override
+  Future<void> syncPendingInspections() async {}
 }

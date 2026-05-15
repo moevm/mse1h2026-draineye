@@ -1,11 +1,13 @@
 import 'dart:io' if (dart.library.html) 'package:drain_eye/stubs/dart_io_stub.dart';
 
 import 'package:drain_eye/core/confidence_accent_color.dart';
-import 'package:drain_eye/core/constants.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
+import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
+import 'package:drain_eye/presentation/blocs/user_inspection/user_inspection_bloc.dart';
 import 'package:drain_eye/presentation/screens/user/low_confidence_screen.dart';
+import 'package:drain_eye/presentation/screens/user/offline_sync_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,26 +15,42 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 const _teal = Color(0xFF0D9488);
 const _gray400 = Color(0xFF94A3B8);
 const _gray500 = Color(0xFF64748B);
+const _borderColor = Color(0xFFE2E8F0);
 
-// экран результата модели (UC-8)
-class ModelResultScreen extends StatelessWidget {
+/// Экран результата модели (UC-8) — адрес, анализ, сохранение.
+class ModelResultScreen extends StatefulWidget {
   final List<String>? photoPaths;
   final String? photoPath;
   final ModelInferenceResult? modelResult;
-  final int userId;
+  final String? engineerId;
 
   const ModelResultScreen({
     super.key,
     this.photoPaths,
     this.photoPath,
     this.modelResult,
-    this.userId = kStubInspectionUserId,
+    this.engineerId,
   });
 
+  @override
+  State<ModelResultScreen> createState() => _ModelResultScreenState();
+}
+
+class _ModelResultScreenState extends State<ModelResultScreen> {
+  final _addressController = TextEditingController();
+
+  @override
+  void dispose() {
+    _addressController.dispose();
+    super.dispose();
+  }
+
   List<String> get _effectivePaths {
-    final fromList = photoPaths;
+    final fromList = widget.photoPaths;
     if (fromList != null && fromList.isNotEmpty) return fromList;
-    if (photoPath != null && photoPath!.isNotEmpty) return [photoPath!];
+    if (widget.photoPath != null && widget.photoPath!.isNotEmpty) {
+      return [widget.photoPath!];
+    }
     return const [];
   }
 
@@ -44,7 +62,47 @@ class ModelResultScreen extends StatelessWidget {
     return confidenceAccentColorFromPercent(percent) == kConfidenceRed;
   }
 
+  String? _resolveEngineerId(BuildContext context) {
+    if (widget.engineerId != null && widget.engineerId!.isNotEmpty) {
+      return widget.engineerId;
+    }
+    final auth = context.read<AuthBloc>().state;
+    if (auth is AuthAuthenticated) return auth.user.id;
+    return null;
+  }
+
+  String? _validateAddress() {
+    final address = _addressController.text.trim();
+    if (address.isEmpty) return 'введите адрес объекта';
+    return null;
+  }
+
   Future<void> _handleSave(BuildContext context, ModelInferenceResult mr) async {
+    final addressError = _validateAddress();
+    if (addressError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(addressError)),
+      );
+      return;
+    }
+    final address = _addressController.text.trim();
+
+    final paths = _effectivePaths;
+    if (paths.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Нет фотографий для сохранения')),
+      );
+      return;
+    }
+
+    final uid = _resolveEngineerId(context);
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Войдите в аккаунт для сохранения')),
+      );
+      return;
+    }
+
     var resultToSubmit = mr;
     if (_isLowConfidence(mr)) {
       final decision = await Navigator.push<LowConfidenceDecision>(
@@ -69,16 +127,43 @@ class ModelResultScreen extends StatelessWidget {
 
     context.read<NewInspectionBloc>().add(
           SubmitNewInspection(
-            userId: userId,
-            photoPaths: _effectivePaths,
+            engineerId: uid,
+            address: address,
+            photoPaths: paths,
             modelResult: resultToSubmit,
+          ),
+        );
+  }
+
+  Future<void> _openOfflineScreen(
+    BuildContext context,
+    NewInspectionOfflineRequired state,
+  ) async {
+    final confirmed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OfflineSyncScreen(
+          modelResult: state.modelResult,
+          address: state.address,
+          pendingCount: state.pendingCount,
+        ),
+      ),
+    );
+    if (!context.mounted || confirmed != true) return;
+
+    context.read<NewInspectionBloc>().add(
+          CacheNewInspectionOffline(
+            engineerId: state.engineerId,
+            address: state.address,
+            photoPaths: state.photoPaths,
+            modelResult: state.modelResult,
           ),
         );
   }
 
   @override
   Widget build(BuildContext context) {
-    final mr = modelResult;
+    final mr = widget.modelResult;
     final accentColor = mr == null
         ? _gray400
         : confidenceAccentColorFromPercent((mr.accuracyModel * 100).round());
@@ -86,10 +171,17 @@ class ModelResultScreen extends StatelessWidget {
     return BlocListener<NewInspectionBloc, NewInspectionState>(
       listenWhen: (prev, curr) =>
           curr is NewInspectionSubmitSuccess ||
-          curr is NewInspectionSubmitFailure,
+          curr is NewInspectionSubmitFailure ||
+          curr is NewInspectionOfflineRequired,
       listener: (context, state) {
-        if (state is NewInspectionSubmitSuccess) {
+        if (state is NewInspectionOfflineRequired) {
+          _openOfflineScreen(context, state);
+        } else if (state is NewInspectionSubmitSuccess) {
           if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+            context.read<UserInspectionBloc>().add(LoadUserInspections());
             context.read<NewInspectionBloc>().add(ResetNewInspection());
             Navigator.pop(context, true);
           }
@@ -103,7 +195,11 @@ class ModelResultScreen extends StatelessWidget {
         backgroundColor: const Color(0xFFF0FDFA),
         appBar: AppBar(
           title: const Text('Результат'),
-          titleTextStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+          titleTextStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
           backgroundColor: _teal,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -111,9 +207,48 @@ class ModelResultScreen extends StatelessWidget {
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _ResultPhotoCarousel(paths: _effectivePaths),
               const SizedBox(height: 16),
+              if (mr != null) ...[
+                const Text(
+                  'Адрес объекта',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _gray500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: _addressController,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: 'Например: ул. Ленина, д. 10',
+                    hintStyle: const TextStyle(color: _gray400, fontSize: 14),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: _borderColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: _borderColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: _teal, width: 1.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -122,21 +257,42 @@ class ModelResultScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border(left: BorderSide(color: accentColor, width: 4)),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2)),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Результат анализа', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: accentColor)),
+                    Text(
+                      'Результат анализа',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     _row('Материал', _orQuestion(mr?.material)),
                     _row('Состояние', _orQuestion(mr?.state?.toString())),
-                    _row('Тип повреждения', mr != null ? damageTypeLabelRu(mr.damageType) : '?'),
-                    _row('Степень повреждения', mr?.damageDegree != null ? mr!.damageDegree!.toStringAsFixed(2) : '?'),
+                    _row(
+                      'Тип повреждения',
+                      mr != null ? damageTypeLabelRu(mr.damageType) : '?',
+                    ),
+                    _row(
+                      'Степень повреждения',
+                      mr?.damageDegree != null
+                          ? mr!.damageDegree!.toStringAsFixed(2)
+                          : '?',
+                    ),
                     _row(
                       'Уверенность модели',
-                      mr != null ? '${(mr.accuracyModel * 100).toStringAsFixed(1)}%' : '?',
+                      mr != null
+                          ? '${(mr.accuracyModel * 100).toStringAsFixed(1)}%'
+                          : '?',
                       valueColor: mr != null ? accentColor : null,
                     ),
                   ],
@@ -158,7 +314,9 @@ class ModelResultScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _teal,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         elevation: 0,
                       ),
                       onPressed: submitting
@@ -174,11 +332,17 @@ class ModelResultScreen extends StatelessWidget {
                           ? const SizedBox(
                               width: 22,
                               height: 22,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : Text(
                               mr == null ? 'Готово' : 'Сохранить',
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                     ),
                   );
@@ -208,7 +372,10 @@ class ModelResultScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(fontSize: 13, color: _gray500)),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 13, color: _gray500),
+            ),
           ),
           const SizedBox(width: 8),
           Flexible(
@@ -226,7 +393,6 @@ class ModelResultScreen extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _ResultPhotoCarousel extends StatefulWidget {

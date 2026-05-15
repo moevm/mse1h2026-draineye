@@ -6,8 +6,11 @@ import 'package:drain_eye/domain/usecases/check_auth.dart';
 import 'package:drain_eye/domain/usecases/get_user_inspections.dart';
 import 'package:drain_eye/domain/usecases/login_user.dart';
 import 'package:drain_eye/domain/usecases/register_user.dart';
+import 'package:drain_eye/domain/usecases/cache_inspection_offline.dart';
 import 'package:drain_eye/domain/usecases/run_damage_model.dart';
 import 'package:drain_eye/domain/usecases/submit_inspection.dart';
+import 'package:drain_eye/domain/usecases/sync_pending_inspections.dart';
+import 'package:drain_eye/presentation/widgets/inspection_sync_lifecycle.dart';
 import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
 import 'package:drain_eye/presentation/blocs/user_inspection/user_inspection_bloc.dart';
@@ -29,9 +32,14 @@ Future<void> main() async {
   final userInspectionBloc = UserInspectionBloc(
     getUserInspections: getUserInspections,
   );
+  final syncPendingInspections =
+      SyncPendingInspections(inspectionRepository);
   final newInspectionBloc = NewInspectionBloc(
     runDamageModel: RunDamageModel(inspectionRepository),
     submitInspection: SubmitInspection(inspectionRepository),
+    cacheInspectionOffline: CacheInspectionOffline(inspectionRepository),
+    syncPendingInspections: syncPendingInspections,
+    inspectionRepository: inspectionRepository,
   );
 
   final loginUser = LoginUser(authRepository);
@@ -48,6 +56,7 @@ Future<void> main() async {
     userInspectionBloc: userInspectionBloc,
     newInspectionBloc: newInspectionBloc,
     authBloc: authBloc,
+    syncPendingInspections: syncPendingInspections,
   ));
 }
 
@@ -64,12 +73,14 @@ class MyApp extends StatelessWidget {
   final UserInspectionBloc userInspectionBloc;
   final NewInspectionBloc newInspectionBloc;
   final AuthBloc authBloc;
+  final SyncPendingInspections syncPendingInspections;
 
   const MyApp({
     super.key,
     required this.userInspectionBloc,
     required this.newInspectionBloc,
     required this.authBloc,
+    required this.syncPendingInspections,
   });
 
   @override
@@ -80,9 +91,12 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(value: newInspectionBloc),
         BlocProvider.value(value: authBloc),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: const LoginScreen(),
+      child: InspectionSyncLifecycle(
+        syncPendingInspections: syncPendingInspections,
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: const LoginScreen(),
+        ),
       ),
     );
   }
