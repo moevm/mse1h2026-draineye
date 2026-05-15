@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:drain_eye/core/inspection_time.dart';
 import 'package:drain_eye/presentation/widgets/inspection_photo_image.dart';
 import 'package:drain_eye/core/confidence_accent_color.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
@@ -38,8 +38,7 @@ class _InspectionScreenState extends State<InspectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
-    final dateTimeStr = dateFormat.format(inspection.timestamp);
+    final dateTimeStr = InspectionTime.formatForDisplay(inspection.timestamp);
     final accentColor =
         confidenceAccentColorFromPercent((inspection.confidence * 100).round());
 

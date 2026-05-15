@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drain_eye/core/api_config.dart';
+import 'package:drain_eye/core/inspection_time.dart';
 import 'package:drain_eye/core/network_connectivity.dart';
 import 'package:drain_eye/core/offline_inspection_exception.dart';
 import 'package:drain_eye/data/datasources/local_damage_model_datasource.dart';
@@ -207,6 +208,7 @@ class InspectionRepositoryImpl implements InspectionRepository {
           modelResult: item.modelResult,
           address: item.address,
           name: item.name,
+          timestamp: item.createdAt,
         );
         await _offlineCache.remove(item.localId);
       } catch (e) {
@@ -223,13 +225,14 @@ class InspectionRepositoryImpl implements InspectionRepository {
     required ModelInferenceResult modelResult,
     String address = '',
     String name = 'Инспекция',
+    DateTime? timestamp,
   }) async {
     final token = await _authToken();
     final uri = Uri.parse(ApiConfig.addInspection);
 
     final inspectionPayload = <String, dynamic>{
       'engineer_id': engineerId,
-      'timestamp': DateTime.now().toIso8601String(),
+      'timestamp': InspectionTime.utcIso8601(timestamp ?? DateTime.now()),
       'model_verdict': <String, dynamic>{
         'material': modelResult.material ?? 'unknown',
         'state': modelResult.state ?? 0,

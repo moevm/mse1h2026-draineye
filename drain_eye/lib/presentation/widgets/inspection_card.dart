@@ -1,7 +1,7 @@
 import 'package:drain_eye/domain/entities/inspection_sync_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
+import 'package:drain_eye/core/inspection_time.dart';
 import 'package:drain_eye/presentation/widgets/inspection_photo_image.dart';
 import '../../domain/entities/inspection.dart';
 
@@ -27,8 +27,7 @@ class InspectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
-    final dateTimeStr = dateFormat.format(inspection.timestamp);
+    final dateTimeStr = InspectionTime.formatForDisplay(inspection.timestamp);
     final confidencePercent = (inspection.confidence * 100).round();
     final photoSource = inspection.photoUrls.isNotEmpty
         ? inspection.photoUrls.first

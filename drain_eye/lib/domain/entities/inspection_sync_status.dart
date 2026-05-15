@@ -30,7 +30,7 @@ enum InspectionSyncStatus {
       case InspectionSyncStatus.pending:
         return 'Ожидает отправки';
       case InspectionSyncStatus.cached:
-        return 'В кэше';
+        return 'Ожидает сети';
     }
   }
 
@@ -44,7 +44,7 @@ enum InspectionSyncStatus {
       case InspectionSyncStatus.pending:
         return 'в ожидании';
       case InspectionSyncStatus.cached:
-        return 'в кэше';
+        return 'ожидает сети';
     }
   }
 

@@ -126,7 +126,7 @@ class OfflineSyncScreen extends StatelessWidget {
                   ),
                   _row('Тип повреждения', damageTypeLabelRu(mr.damageType)),
                   _row('Уверенность', '$confidencePercent%'),
-                  _rowBadge('Статус', 'В кэше', _orange),
+                  _rowBadge('Статус', 'ожидает сети', _orange),
                 ],
               ),
             ),
