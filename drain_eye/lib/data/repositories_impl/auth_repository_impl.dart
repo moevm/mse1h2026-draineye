@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:drain_eye/core/api_config.dart';
 import 'package:drain_eye/domain/entities/user.dart';
 import 'package:drain_eye/domain/repositories/auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -24,9 +25,6 @@ class AuthRepositoryImpl implements AuthRepository {
   final firebase_auth.FirebaseAuth? _firebaseAuth;
   Future<void>? _googleSignInInitialized;
 
-  // базовый URL бэкенда (можно позже заменить на реальный)
-  final String baseUrl = 'https://2pw8ay-95-161-60-178.ru.tuna.am';
-
   static const _userPrefsKey = 'user';
   static const _authTokenPrefsKey = 'auth_token';
 
@@ -43,7 +41,7 @@ class AuthRepositoryImpl implements AuthRepository {
       throw Exception('введите имя');
     }
 
-    final uri = Uri.parse('$baseUrl/inspector/register');
+    final uri = Uri.parse(ApiConfig.register);
     if (kDebugMode) {
       print('Register backend request: $uri email=$normalizedEmail');
     }
@@ -301,7 +299,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required bool signOutOnBackendError,
   }) async {
     final response = await _httpClient.post(
-      Uri.parse('$baseUrl/inspector/login'),
+      Uri.parse(ApiConfig.login),
       headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',

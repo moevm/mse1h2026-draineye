@@ -1,4 +1,5 @@
 import 'package:drain_eye/domain/entities/inspection.dart';
+import 'package:drain_eye/domain/entities/inspection_sync_status.dart';
 import 'package:flutter/foundation.dart';
 
 /// DTO ответа API (Firestore / FastAPI) → [Inspection] домена.
@@ -103,12 +104,18 @@ class InspectionModel {
       confidence: confidence,
       condition: modelVerdict.state.clamp(0, 5),
       defects: defects,
-      synchronized: statusSync == 'save' || statusSync == 'synced',
+      synchronized: _isSynchronized(statusSync),
+      syncStatus: InspectionSyncStatus.fromApi(statusSync),
       address: address,
       damageTypeCode:
           modelVerdict.damageType.isEmpty ? null : modelVerdict.damageType,
       damageDegree: modelVerdict.damageDegree,
     );
+  }
+
+  static bool _isSynchronized(String statusSync) {
+    final s = statusSync.toLowerCase();
+    return s == 'synced' || s == 'outdated';
   }
 
   static int _domainId(String? inspectionId, int index) {

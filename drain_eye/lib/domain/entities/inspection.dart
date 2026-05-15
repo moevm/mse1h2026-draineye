@@ -1,3 +1,5 @@
+import 'package:drain_eye/domain/entities/inspection_sync_status.dart';
+
 // сущность инспекции
 class Inspection {
   final int id;
@@ -9,7 +11,8 @@ class Inspection {
   final double confidence;    
   final int condition;  
   final List<String> defects;
-  final bool synchronized;           
+  final bool synchronized;
+  final InspectionSyncStatus? syncStatus;
   final String address;
   /// Код типа повреждения из model_verdict (corrosion / crack / no_damage).
   final String? damageTypeCode;
@@ -27,6 +30,7 @@ class Inspection {
     required this.condition,
     required this.defects,
     required this.synchronized,
+    this.syncStatus,
     required this.address,
     this.damageTypeCode,
     this.damageDegree,

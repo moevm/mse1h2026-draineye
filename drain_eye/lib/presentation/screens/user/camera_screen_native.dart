@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
 import 'package:drain_eye/presentation/screens/user/model_result_screen.dart';
 import 'package:flutter/material.dart';
@@ -198,12 +199,16 @@ class _CameraScreenState extends State<CameraScreen> {
     return BlocConsumer<NewInspectionBloc, NewInspectionState>(
       listener: (context, state) {
         if (state is NewInspectionAnalysisSuccess) {
+          final auth = context.read<AuthBloc>().state;
+          final engineerId =
+              auth is AuthAuthenticated ? auth.user.id : null;
           Navigator.of(context)
               .push<bool>(
             MaterialPageRoute(
               builder: (_) => ModelResultScreen(
                 photoPaths: state.photoPaths,
                 modelResult: state.result,
+                engineerId: engineerId,
               ),
             ),
           )

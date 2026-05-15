@@ -1,11 +1,13 @@
 import 'dart:io' if (dart.library.html) 'package:drain_eye/stubs/dart_io_stub.dart';
 
 import 'package:drain_eye/core/confidence_accent_color.dart';
-import 'package:drain_eye/core/constants.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
+import 'package:drain_eye/presentation/blocs/auth/auth_bloc.dart';
 import 'package:drain_eye/presentation/blocs/new_inspection/new_inspection_bloc.dart';
+import 'package:drain_eye/presentation/blocs/user_inspection/user_inspection_bloc.dart';
 import 'package:drain_eye/presentation/screens/user/low_confidence_screen.dart';
+import 'package:drain_eye/presentation/screens/user/offline_sync_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,14 +21,14 @@ class ModelResultScreen extends StatelessWidget {
   final List<String>? photoPaths;
   final String? photoPath;
   final ModelInferenceResult? modelResult;
-  final int userId;
+  final String? engineerId;
 
   const ModelResultScreen({
     super.key,
     this.photoPaths,
     this.photoPath,
     this.modelResult,
-    this.userId = kStubInspectionUserId,
+    this.engineerId,
   });
 
   List<String> get _effectivePaths {
@@ -44,7 +46,30 @@ class ModelResultScreen extends StatelessWidget {
     return confidenceAccentColorFromPercent(percent) == kConfidenceRed;
   }
 
+  String? _resolveEngineerId(BuildContext context) {
+    if (engineerId != null && engineerId!.isNotEmpty) return engineerId;
+    final auth = context.read<AuthBloc>().state;
+    if (auth is AuthAuthenticated) return auth.user.id;
+    return null;
+  }
+
   Future<void> _handleSave(BuildContext context, ModelInferenceResult mr) async {
+    final paths = _effectivePaths;
+    if (paths.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Нет фотографий для сохранения')),
+      );
+      return;
+    }
+
+    final uid = _resolveEngineerId(context);
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Войдите в аккаунт для сохранения')),
+      );
+      return;
+    }
+
     var resultToSubmit = mr;
     if (_isLowConfidence(mr)) {
       final decision = await Navigator.push<LowConfidenceDecision>(
@@ -69,9 +94,33 @@ class ModelResultScreen extends StatelessWidget {
 
     context.read<NewInspectionBloc>().add(
           SubmitNewInspection(
-            userId: userId,
-            photoPaths: _effectivePaths,
+            engineerId: uid,
+            photoPaths: paths,
             modelResult: resultToSubmit,
+          ),
+        );
+  }
+
+  Future<void> _openOfflineScreen(
+    BuildContext context,
+    NewInspectionOfflineRequired state,
+  ) async {
+    final confirmed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OfflineSyncScreen(
+          modelResult: state.modelResult,
+          pendingCount: state.pendingCount,
+        ),
+      ),
+    );
+    if (!context.mounted || confirmed != true) return;
+
+    context.read<NewInspectionBloc>().add(
+          CacheNewInspectionOffline(
+            engineerId: state.engineerId,
+            photoPaths: state.photoPaths,
+            modelResult: state.modelResult,
           ),
         );
   }
@@ -86,10 +135,17 @@ class ModelResultScreen extends StatelessWidget {
     return BlocListener<NewInspectionBloc, NewInspectionState>(
       listenWhen: (prev, curr) =>
           curr is NewInspectionSubmitSuccess ||
-          curr is NewInspectionSubmitFailure,
+          curr is NewInspectionSubmitFailure ||
+          curr is NewInspectionOfflineRequired,
       listener: (context, state) {
-        if (state is NewInspectionSubmitSuccess) {
+        if (state is NewInspectionOfflineRequired) {
+          _openOfflineScreen(context, state);
+        } else if (state is NewInspectionSubmitSuccess) {
           if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+            context.read<UserInspectionBloc>().add(LoadUserInspections());
             context.read<NewInspectionBloc>().add(ResetNewInspection());
             Navigator.pop(context, true);
           }

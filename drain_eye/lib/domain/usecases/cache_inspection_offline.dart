@@ -1,18 +1,17 @@
-import 'package:drain_eye/domain/entities/inspection_submit_result.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
 import 'package:drain_eye/domain/repositories/inspection_repository.dart';
 
-class SubmitInspection {
+class CacheInspectionOffline {
   final InspectionRepository repository;
 
-  SubmitInspection(this.repository);
+  CacheInspectionOffline(this.repository);
 
-  Future<InspectionSubmitResult> call({
+  Future<void> call({
     required String engineerId,
     required List<String> photoPaths,
     required ModelInferenceResult modelResult,
   }) {
-    return repository.submitInspection(
+    return repository.cacheInspection(
       engineerId: engineerId,
       photoPaths: photoPaths,
       modelResult: modelResult,

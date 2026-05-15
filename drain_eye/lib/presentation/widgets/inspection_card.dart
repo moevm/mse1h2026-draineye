@@ -90,7 +90,18 @@ class InspectionCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // материал · состояние · уверенность
+                  if (!inspection.synchronized)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        inspection.syncStatus?.labelRu ?? 'В кэше',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFF59E0B),
+                        ),
+                      ),
+                    ),
                   Row(
                     children: [
                       Text(
