@@ -1,4 +1,5 @@
 from server_backend.imports import datetime, List, BaseModel, Field, Optional
+from server_backend.models import SyncStatus
 
 class ModelVerdictSchema(BaseModel):
     material: str
@@ -15,7 +16,7 @@ class InspectionSchema(BaseModel):
     address: str
     name: str
     photos: List[str] = []
-    status_sync: str = "pending"
+    status_sync: str = SyncStatus.PENDING
 
 class EngineerBriefResponse(BaseModel):
     user_id: str

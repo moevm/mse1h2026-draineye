@@ -62,6 +62,7 @@ class UsersCollection(BaseCollection):
     def delete_all_users(self) -> int:
         return self.delete_all_test()
 
+    '''количество активных инспекторов'''
     def get_active_inspectors_count(self) -> int:
         query = self.collection \
             .where(filter=FieldFilter("role", "==", UserRole.INSPECTOR)) \
@@ -69,6 +70,7 @@ class UsersCollection(BaseCollection):
         snapshot = query.count().get()
         return snapshot[0][0].value
 
+    '''все инспекторы с сохранением прогресса'''
     def get_inspectors_paginated(
         self,
         role: UserRole = UserRole.INSPECTOR,

@@ -1,7 +1,7 @@
 from server_backend.services import FirebaseService
 from server_backend.services.cloudinary_service import CloudinaryService
 from server_backend.imports import Optional, List, UploadFile, Tuple
-from server_backend.models import Inspection, User
+from server_backend.models import Inspection, User, SyncStatus
 from server_backend.models.user import UserRole
 from server_backend.schemas import InspectionSchema
 
@@ -24,7 +24,7 @@ class StorageService:
         return self._firebase.get_inspections_by_engineer(engineer_id, limit)
 
     '''добавление инспекции'''
-    def add_inspection(self, inspection) -> str:
+    def add_inspection(self, inspection) -> Tuple[str, SyncStatus]:
         return self._firebase.add_inspection(inspection)
 
     '''регистрирует инспектора'''
@@ -42,7 +42,7 @@ class StorageService:
         files: Optional[List[UploadFile]] = None
     ) -> dict:
         inspection = Inspection.from_schema(inspection_schema)
-        inspection_id = self.add_inspection(inspection)
+        inspection_id, sync_status = self.add_inspection(inspection)
 
         photo_urls = []
         if files and inspection_id and len(files) > 0:
@@ -64,18 +64,22 @@ class StorageService:
         return {
             "inspection_id": inspection_id,
             "photo_urls": photo_urls,
-            "status": "created"
+            "status": sync_status
         }
 
+    '''верификация токена'''
     def verify_token(self, token: str) -> Optional[str]:
         return self._firebase.verify_token(token)
 
+    '''получение юзера'''
     def get_user(self, uid: str):
         return  self._firebase.get_user_by_uid(uid)
 
+    '''обновить время последней активности'''
     def log_activity(self, uid: str):
         return self._firebase.log_activity(uid)
 
+    '''получение метрик дашборда'''
     def get_dashboard_metrics(self) -> dict:
         try:
             active_inspectors = self._firebase.get_active_inspectors_count()
@@ -89,6 +93,7 @@ class StorageService:
         except Exception as e:
             raise e
 
+    '''получение инспекторов'''
     def get_users_by_role_paginated(
             self, role: UserRole, limit: int, next_cursor: Optional[List],active_only: bool
     ) -> Tuple[List[User], Optional[List]]:
@@ -99,6 +104,7 @@ class StorageService:
             active_only=active_only
         )
 
+    '''получение инспекций'''
     def get_all_inspections_paginated_with_engineer(
          self,limit: int, next_cursor: Optional[List],
     ) -> Tuple[List[Tuple[Inspection, Optional[User]]], Optional[List]]:

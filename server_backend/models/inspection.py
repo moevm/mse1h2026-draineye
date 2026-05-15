@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from server_backend.imports import datetime, List, Optional
-from server_backend.schemas import InspectionSchema, ModelVerdictSchema
+from server_backend.imports import datetime, List, Optional, Enum
 
 '''
 класс для хранения вердикта, вынесенного ML моделью
@@ -38,7 +37,7 @@ class ModelVerdict:
 
     '''преобразование из схемы'''
     @classmethod
-    def from_schema(cls, schema: ModelVerdictSchema):
+    def from_schema(cls, schema):
         return cls(
             material=schema.material,
             state=schema.state,
@@ -47,6 +46,22 @@ class ModelVerdict:
             accuracy_model=schema.accuracy_model,
             comments=schema.comments
         )
+
+'''
+Статус синхронизации инспекции
+'''
+class SyncStatus(Enum):
+    PENDING = "pending"  # Отправлено на сервер
+    SYNCED = "synced"  # Синхронизирована
+    OUTDATED = "outdated"  # Ошибка синхронизации
+
+    """Создает SyncStatus из строки"""
+    @classmethod
+    def from_string(cls, value: str):
+        for status in cls:
+            if status.value == value:
+                return status
+        raise ValueError(f"Неизвестный sync status: {value}")
 
 '''
 класс, представляющий полную информацию об инспекции 
@@ -59,7 +74,7 @@ class Inspection:
     address: str
     name: str
     photos: List[str]
-    status_sync: str
+    status_sync: SyncStatus
     inspection_id: Optional[str] = None
 
     """преобразует объект Inspection в словарь для сохранения в Firestore"""
@@ -71,7 +86,7 @@ class Inspection:
             'address': self.address,
             'name': self.name,
             'photos': self.photos.copy(),
-            'status_sync': self.status_sync
+            'status_sync': self.status_sync.value
         }
 
     """создает объект Inspection из документа Firestore"""
@@ -91,7 +106,7 @@ class Inspection:
 
     '''преобразование из схемы'''
     @classmethod
-    def from_schema(cls, schema: InspectionSchema, photos: List[str] = None):
+    def from_schema(cls, schema, photos: List[str] = None):
         return cls(
             engineer_id=schema.engineer_id,
             timestamp=schema.timestamp,
