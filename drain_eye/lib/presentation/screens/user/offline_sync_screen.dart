@@ -1,4 +1,3 @@
-import 'package:drain_eye/core/confidence_accent_color.dart';
 import 'package:drain_eye/core/damage_type_labels.dart';
 import 'package:drain_eye/domain/entities/model_inference_result.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +24,6 @@ class OfflineSyncScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final mr = modelResult;
     final confidencePercent = (mr.accuracyModel * 100).round();
-    final accentColor = confidenceAccentColorFromPercent(confidencePercent);
     final material = mr.material?.trim();
     final materialLabel =
         material == null || material.isEmpty || material == 'unknown'
@@ -83,7 +81,7 @@ class OfflineSyncScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Результат будет сохранён в кэш и автоматически выгружен при появлении соединения.',
+                    'Результат будет сохранён локально и автоматически синхронизирован при появлении соединения.',
                     style: TextStyle(fontSize: 13, color: _gray500),
                   ),
                 ],
@@ -147,7 +145,7 @@ class OfflineSyncScreen extends StatelessWidget {
                       ),
                       onPressed: () => Navigator.pop(context, true),
                       child: const Text(
-                        'OK — В кэш',
+                        'ОК',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -195,7 +193,7 @@ class OfflineSyncScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
-                      color: _orange,
+                      color: _gray500,
                     ),
                   ),
                   const Text(
@@ -204,12 +202,6 @@ class OfflineSyncScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'После появления сети данные отправятся на сервер автоматически',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: accentColor),
             ),
           ],
         ),

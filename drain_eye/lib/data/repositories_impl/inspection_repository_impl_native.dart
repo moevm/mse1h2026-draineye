@@ -64,7 +64,9 @@ class InspectionRepositoryImpl implements InspectionRepository {
         .map((e) => _pendingToDomain(e.value, e.key))
         .toList();
 
-    return [...local, ...server];
+    final merged = <Inspection>[...local, ...server];
+    merged.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return merged;
   }
 
   Future<List<Inspection>> _fetchMyInspections() async {
