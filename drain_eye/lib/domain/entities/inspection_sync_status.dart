@@ -33,4 +33,19 @@ enum InspectionSyncStatus {
         return 'В кэше';
     }
   }
+
+  /// Подпись на бейдже в карточке истории.
+  String get cardBadgeLabel {
+    switch (this) {
+      case InspectionSyncStatus.synced:
+        return 'синхронизировано';
+      case InspectionSyncStatus.outdated:
+        return 'устарело';
+      case InspectionSyncStatus.pending:
+        return 'в ожидании';
+      case InspectionSyncStatus.cached:
+        return 'в кэше';
+    }
+  }
+
 }

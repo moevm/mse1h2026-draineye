@@ -1,6 +1,6 @@
 // Базовый URL сервера. Меняется при каждом запуске tuna.am — обновлять здесь.
 class ApiConfig {
-  static const String baseUrl = 'https://ek5xa6-95-161-60-178.ru.tuna.am';
+  static const String baseUrl = 'https://lm2o7b-95-161-60-178.ru.tuna.am';
 
   static const String inspectorApiBase = '$baseUrl/inspector';
 

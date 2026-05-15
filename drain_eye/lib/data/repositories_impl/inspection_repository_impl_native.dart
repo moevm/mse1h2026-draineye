@@ -81,19 +81,45 @@ class InspectionRepositoryImpl implements InspectionRepository {
         'my_inspections: ${response.statusCode} ${response.body}',
       );
     }
+
+    if (kDebugMode) {
+      final preview = response.body.length > 2000
+          ? '${response.body.substring(0, 2000)}...'
+          : response.body;
+      debugPrint('[my_inspections] ${response.statusCode} body: $preview');
+    }
+
     final decoded = jsonDecode(response.body);
     if (decoded is! List) {
       throw FormatException('Ожидался JSON-массив инспекций');
     }
+
+    if (kDebugMode) {
+      debugPrint('[my_inspections] записей: ${decoded.length}');
+    }
+
     final out = <Inspection>[];
     for (var i = 0; i < decoded.length; i++) {
       final raw = decoded[i];
       if (raw is! Map) {
         throw FormatException('Элемент списка инспекций не объект');
       }
-      final dto = InspectionModel.fromJson(Map<String, dynamic>.from(raw));
+      final map = Map<String, dynamic>.from(raw);
+      if (kDebugMode) {
+        final id = map['inspection_id'] ?? map['id'];
+        debugPrint(
+          '[my_inspections][$i] id=$id '
+          'status_sync=${map['status_sync']} status=${map['status']}',
+        );
+      }
+      final dto = InspectionModel.fromJson(map);
       out.add(dto.toDomain(index: i));
     }
+
+    if (kDebugMode) {
+      debugPrint('[my_inspections] загружено в UI: ${out.length}');
+    }
+
     return out;
   }
 
