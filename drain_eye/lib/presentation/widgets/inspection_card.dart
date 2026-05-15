@@ -2,7 +2,7 @@ import 'package:drain_eye/domain/entities/inspection_sync_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import 'package:drain_eye/core/cloudinary_image_url.dart';
+import 'package:drain_eye/presentation/widgets/inspection_photo_image.dart';
 import '../../domain/entities/inspection.dart';
 
 const _teal = Color(0xFF0D9488);
@@ -30,7 +30,9 @@ class InspectionCard extends StatelessWidget {
     final dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
     final dateTimeStr = dateFormat.format(inspection.timestamp);
     final confidencePercent = (inspection.confidence * 100).round();
-    final thumbnailUrl = cloudinaryImageUrl(inspection.photoUrl);
+    final photoSource = inspection.photoUrls.isNotEmpty
+        ? inspection.photoUrls.first
+        : inspection.photoUrl;
     final status = _syncStatus;
 
     return GestureDetector(
@@ -60,23 +62,14 @@ class InspectionCard extends StatelessWidget {
                     child: SizedBox(
                       width: 56,
                       height: 56,
-                      child: thumbnailUrl == null
+                      child: photoSource.trim().isEmpty
                           ? _photoPlaceholder()
-                          : Image.network(
-                              thumbnailUrl,
+                          : InspectionPhotoImage(
+                              source: photoSource,
+                              width: 56,
+                              height: 56,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, error, __) {
-                                if (kDebugMode) {
-                                  debugPrint(
-                                    'Inspection thumbnail failed: $thumbnailUrl error=$error',
-                                  );
-                                }
-                                return _photoPlaceholder();
-                              },
-                              loadingBuilder: (context, child, progress) {
-                                if (progress == null) return child;
-                                return _photoPlaceholder();
-                              },
+                              placeholder: _photoPlaceholder(),
                             ),
                     ),
                   ),
