@@ -80,22 +80,3 @@ class CloudinaryService:
         except Exception as e:
             logger.error(f"Ошибка загрузки фото {file.filename} (ID: {public_id}): {str(e)}", exc_info=True)
             raise e
-
-    async def upload_avatar(self, file: UploadFile, user_id: str) -> str:
-        try:
-            content = await file.read()
-            file_stream = io.BytesIO(content)
-            public_id = self.generate_avatar_public_id(user_id, file.filename)
-            folder = "/".join(public_id.split("/")[:-1])
-            filename = public_id.split("/")[-1]
-            result = cloudinary.uploader.upload(
-                file_stream,
-                public_id=filename,
-                folder=folder,
-                resource_type="image",
-                overwrite=True
-            )
-            await file.seek(0)
-            return result.get("secure_url")
-        except Exception as e:
-            raise

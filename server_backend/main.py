@@ -17,5 +17,3 @@ if __name__ == "__main__":
         port=settings.SERVER_PORT,
         log_config=LOGGING_CONFIG,
     )
-
-

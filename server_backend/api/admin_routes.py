@@ -65,7 +65,7 @@ def get_dashboard_metrics(
     try:
         metrics_data = ss.get_dashboard_metrics()
         return metrics_data
-    except Exception:
+    except Exception as e:
         logger.error(f"Ошибка при получении метрик для админа {user.user_id}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,

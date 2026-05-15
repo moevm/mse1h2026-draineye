@@ -100,5 +100,5 @@ class InspectionsCollection(BaseCollection):
         if latest_ts > new_ts:
             return SyncStatus.OUTDATED
         else:
-            latest_doc.reference.update({"status_sync": SyncStatus.OUTDATED})
+            latest_doc.reference.update({"status_sync": SyncStatus.OUTDATED.value})
             return SyncStatus.SYNCED
